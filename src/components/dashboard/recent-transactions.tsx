@@ -25,18 +25,18 @@ export function RecentTransactions({ transactions }: RecentTransactionsProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="font-headline">Recent Transactions</CardTitle>
+        <CardTitle className="font-headline">Transações Recentes</CardTitle>
         <CardDescription>
-          A list of your most recent income and expenses.
+          Uma lista de suas receitas e despesas mais recentes.
         </CardDescription>
       </CardHeader>
       <CardContent>
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Transaction</TableHead>
-              <TableHead className="text-right">Amount</TableHead>
-              <TableHead className="hidden md:table-cell">Date</TableHead>
+              <TableHead>Transação</TableHead>
+              <TableHead className="text-right">Valor</TableHead>
+              <TableHead className="hidden md:table-cell">Data</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -54,7 +54,7 @@ export function RecentTransactions({ transactions }: RecentTransactionsProps) {
                   </div>
                 </TableCell>
                 <TableCell className={`text-right font-medium ${transaction.type === 'income' ? 'text-green-500' : 'text-red-500'}`}>
-                  {transaction.type === 'income' ? '+' : '-'}${transaction.amount.toLocaleString()}
+                  {transaction.type === 'income' ? '+' : '-'}R${transaction.amount.toLocaleString('pt-BR')}
                 </TableCell>
                 <TableCell className="hidden md:table-cell text-muted-foreground">{transaction.date}</TableCell>
               </TableRow>

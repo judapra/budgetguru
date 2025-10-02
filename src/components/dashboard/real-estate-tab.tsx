@@ -29,7 +29,7 @@ export function RealEstateTab() {
     if (state?.error) {
       toast({
         variant: "destructive",
-        title: "Report Generation Failed",
+        title: "Falha ao Gerar Relatório",
         description: state.error,
       });
     }
@@ -39,24 +39,24 @@ export function RealEstateTab() {
     <div className="max-w-4xl mx-auto">
       <Card>
         <CardHeader>
-          <CardTitle className="font-headline">Real Estate Portfolio Analysis</CardTitle>
+          <CardTitle className="font-headline">Análise de Portfólio Imobiliário</CardTitle>
           <CardDescription>
-            Enter your properties' financial data to generate an AI-powered report on expenses, income, equity, and ROI.
+            Insira os dados financeiros de seus imóveis para gerar um relatório com IA sobre despesas, receitas, patrimônio e ROI.
           </CardDescription>
         </CardHeader>
         <form action={formAction}>
           <CardContent className="space-y-4">
             <div className="grid w-full gap-1.5">
-              <Label htmlFor="financialData">Financial Data</Label>
+              <Label htmlFor="financialData">Dados Financeiros</Label>
               <Textarea
                 id="financialData"
                 name="financialData"
-                placeholder="e.g., Property A: Purchase price $500k, Mortgage $400k at 5% interest, Monthly rent $3000, Annual taxes $5000, Insurance $1200/year, Repairs $1000/year..."
+                placeholder="Ex: Imóvel A: Preço de compra R$500k, Hipoteca R$400k a 5% juros, Aluguel mensal R$3000, Impostos anuais R$5000, Seguro R$1200/ano, Reparos R$1000/ano..."
                 className="min-h-[150px]"
                 required
               />
               <p className="text-sm text-muted-foreground">
-                Provide as much detail as possible for all your properties for the most accurate analysis.
+                Forneça o máximo de detalhes possível para todos os seus imóveis para a análise mais precisa.
               </p>
             </div>
             <SubmitButton />
@@ -66,7 +66,7 @@ export function RealEstateTab() {
           <CardFooter>
             <Card className="w-full bg-secondary/50 shadow-inner">
               <CardHeader>
-                <CardTitle className="font-headline">Generated Report</CardTitle>
+                <CardTitle className="font-headline">Relatório Gerado</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="prose prose-sm dark:prose-invert max-w-none">

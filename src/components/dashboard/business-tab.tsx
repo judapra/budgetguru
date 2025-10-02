@@ -13,8 +13,8 @@ export function BusinessTab() {
       <div className="lg:col-span-2">
         <OverviewChart 
             data={businessChartData}
-            title="Business Financial Overview"
-            description="Your company's income and expenses over the last 6 months."
+            title="Visão Geral Financeira do Negócio"
+            description="Receitas e despesas da sua empresa nos últimos 6 meses."
         />
       </div>
       <div className="space-y-6">

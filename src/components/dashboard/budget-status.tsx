@@ -16,8 +16,8 @@ export function BudgetStatus({ budgets }: BudgetStatusProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="font-headline">Budget Status</CardTitle>
-        <CardDescription>Your spending progress for this month.</CardDescription>
+        <CardTitle className="font-headline">Status do Orçamento</CardTitle>
+        <CardDescription>Seu progresso de gastos para este mês.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {budgets.map((budget) => {
@@ -27,7 +27,7 @@ export function BudgetStatus({ budgets }: BudgetStatusProps) {
               <div className="flex justify-between mb-1">
                 <span className="text-sm font-medium text-muted-foreground">{budget.name}</span>
                 <span className="text-sm font-medium">
-                  ${budget.spent} / ${budget.allocated}
+                  R${budget.spent} / R${budget.allocated}
                 </span>
               </div>
               <Progress value={percentage} />

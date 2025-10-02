@@ -13,7 +13,7 @@ export async function handleGenerateReport(prevState: FormState, formData: FormD
   if (!financialData || financialData.length < 50) {
       return {
           summary: null,
-          error: "Please provide more detailed financial data (at least 50 characters) for an accurate report.",
+          error: "Por favor, forneça dados financeiros mais detalhados (pelo menos 50 caracteres) para um relatório preciso.",
       }
   }
 
@@ -22,6 +22,6 @@ export async function handleGenerateReport(prevState: FormState, formData: FormD
     return { summary: report.summary, error: null };
   } catch (e) {
     console.error(e);
-    return { summary: null, error: 'AI failed to generate report. This may be due to a configuration issue or service outage. Please try again later.' };
+    return { summary: null, error: 'A IA falhou em gerar o relatório. Isso pode ser devido a um problema de configuração ou interrupção do serviço. Por favor, tente novamente mais tarde.' };
   }
 }

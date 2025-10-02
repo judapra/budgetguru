@@ -13,8 +13,8 @@ export function PersonalTab() {
       <div className="lg:col-span-2">
         <OverviewChart 
             data={personalChartData}
-            title="Personal Financial Overview"
-            description="Your income and expenses over the last 6 months."
+            title="Visão Geral Financeira Pessoal"
+            description="Suas receitas e despesas nos últimos 6 meses."
         />
       </div>
       <div className="space-y-6">
