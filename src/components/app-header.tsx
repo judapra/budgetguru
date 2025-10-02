@@ -4,6 +4,8 @@ import { useUser } from "@/firebase";
 import { Button } from "./ui/button";
 import { Logo } from "./logo";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { MainNav } from "./main-nav";
 
 export function AppHeader() {
   const { user, auth } = useUser();
@@ -19,7 +21,10 @@ export function AppHeader() {
   return (
     <header className="border-b">
       <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-        <Logo />
+        <div className="flex items-center gap-6">
+          <Logo />
+          {user && <MainNav />}
+        </div>
         {user && (
           <Button variant="outline" onClick={handleSignOut}>
             Sair
