@@ -3,9 +3,8 @@ import { useState } from 'react';
 import { useRouter, redirect } from 'next/navigation';
 import { useUser } from '@/firebase';
 import {
-  getAuth,
-  signInWithEmailAndPassword,
   GoogleAuthProvider,
+  signInWithEmailAndPassword,
   signInWithPopup,
 } from 'firebase/auth';
 import { Button } from '@/components/ui/button';
@@ -25,7 +24,7 @@ import { Loader2 } from 'lucide-react';
 import { Logo } from '@/components/logo';
 
 export default function LoginPage() {
-  const { user, loading } = useUser();
+  const { user, auth, isUserLoading } = useUser();
   const router = useRouter();
   const { toast } = useToast();
   const [email, setEmail] = useState('');
@@ -35,9 +34,9 @@ export default function LoginPage() {
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!auth) return;
     setIsSigningIn(true);
     try {
-      const auth = getAuth();
       await signInWithEmailAndPassword(auth, email, password);
       router.push('/');
     } catch (error: any) {
@@ -53,13 +52,13 @@ export default function LoginPage() {
   };
 
   const handleGoogleSignIn = async () => {
+    if (!auth) return;
     setIsSigningInWithGoogle(true);
     try {
-      const auth = getAuth();
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
       router.push('/');
-    } catch (error: any) {
+    } catch (error: any)
       console.error(error);
       toast({
         variant: 'destructive',
@@ -72,7 +71,7 @@ export default function LoginPage() {
     }
   };
 
-  if (loading) {
+  if (isUserLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />

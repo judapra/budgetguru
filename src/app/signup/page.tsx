@@ -3,7 +3,6 @@ import { useState } from 'react';
 import { useRouter, redirect } from 'next/navigation';
 import { useUser } from '@/firebase';
 import {
-  getAuth,
   createUserWithEmailAndPassword,
   GoogleAuthProvider,
   signInWithPopup,
@@ -25,7 +24,7 @@ import { Loader2 } from 'lucide-react';
 import { Logo } from '@/components/logo';
 
 export default function SignupPage() {
-  const { user, loading } = useUser();
+  const { user, auth, isUserLoading } = useUser();
   const router = useRouter();
   const { toast } = useToast();
   const [email, setEmail] = useState('');
@@ -44,9 +43,9 @@ export default function SignupPage() {
       });
       return;
     }
+    if (!auth) return;
     setIsSigningUp(true);
     try {
-      const auth = getAuth();
       await createUserWithEmailAndPassword(auth, email, password);
       router.push('/');
     } catch (error: any) {
@@ -68,9 +67,9 @@ export default function SignupPage() {
   };
 
   const handleGoogleSignIn = async () => {
+    if (!auth) return;
     setIsSigningInWithGoogle(true);
     try {
-      const auth = getAuth();
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
       router.push('/');
@@ -87,7 +86,7 @@ export default function SignupPage() {
     }
   };
 
-  if (loading) {
+  if (isUserLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
