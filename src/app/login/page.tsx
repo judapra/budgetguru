@@ -5,7 +5,7 @@ import { useUser } from '@/firebase';
 import {
   GoogleAuthProvider,
   signInWithEmailAndPassword,
-  signInWithPopup,
+  signInWithRedirect,
 } from 'firebase/auth';
 import { Button } from '@/components/ui/button';
 import {
@@ -56,8 +56,7 @@ export default function LoginPage() {
     setIsSigningInWithGoogle(true);
     try {
       const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
-      router.push('/');
+      await signInWithRedirect(auth, provider);
     } catch (error: any) {
       console.error(error);
       toast({
@@ -66,7 +65,6 @@ export default function LoginPage() {
         description:
           'Não foi possível fazer login com o Google. Tente novamente.',
       });
-    } finally {
       setIsSigningInWithGoogle(false);
     }
   };
