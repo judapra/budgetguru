@@ -1,0 +1,187 @@
+/**
+ * @fileoverview Firestore Security Rules for Budget Guru.
+ *
+ * Core Philosophy:
+ * This ruleset enforces a strict user-ownership model. Each user has exclusive
+ * access to their own data, including expenses, incomes, categories, properties,
+ * and property expenses. No cross-user data access is permitted.
+ *
+ * Data Structure:
+ * All data is nested under /users/{userId}, creating a private data tree for
+ * each user.  This structure allows for efficient and secure data access
+ * based on the authenticated user's ID.
+ *
+ * Key Security Decisions:
+ * - Users can only create, read, update, and delete data within their own
+ *   user ID space.
+ * - No user can list other users' data.
+ * - All writes are validated to ensure the userId matches the authenticated
+ *   user's ID, preventing data tampering or unauthorized access.
+ * - The rules are designed for Authorization Independence, avoiding expensive and
+ *   slow `get()` calls.  Authorization decisions are based solely on the
+ *   `request.auth.uid` and the document path.
+ * - Each document is explicitly associated with a specific `userId`. This association,
+ *   combined with Firestore security rules, guarantees that only authenticated users
+ *   can access and manipulate their own data.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /**
+     * @description Rules for the /users/{userId} collection.
+     * @path /users/{userId}
+     * @allow (create) - Authenticated user creates their own profile.
+     *          e.g., request.auth.uid = "user123", document ID = "user123".
+     * @deny (create) - Authenticated user attempts to create a profile with a mismatched ID.
+     *          e.g., request.auth.uid = "user123", document ID = "user456".
+     * @deny (get, list, update, delete) - Any operation by a different user.
+     * @principle Enforces document ownership; only the owner can read/write.
+     */
+    match /users/{userId} {
+      function isSignedIn() {
+        return request.auth != null;
+      }
+
+      function isOwner(userId) {
+        return request.auth.uid == userId;
+      }
+
+      allow get: if isOwner(userId);
+      allow list: if false;
+      allow create: if isSignedIn() && isOwner(userId) && request.resource.data.id == userId;
+      allow update: if isSignedIn() && isOwner(userId) && resource.data.id == userId;
+      allow delete: if isSignedIn() && isOwner(userId) && resource.data.id == userId;
+    }
+
+    /**
+     * @description Rules for the /users/{userId}/expenses/{expenseId} collection.
+     * @path /users/{userId}/expenses/{expenseId}
+     * @allow (create) - Authenticated user creates an expense in their own user space.
+     *          e.g., request.auth.uid = "user123", path = "/users/user123/expenses/expense456".
+     * @deny (create) - Authenticated user attempts to create an expense in another user's space.
+     *          e.g., request.auth.uid = "user123", path = "/users/user456/expenses/expense456".
+     * @deny (get, list, update, delete) - Any operation by a different user.
+     * @principle Enforces document ownership; only the owner can read/write.
+     */
+    match /users/{userId}/expenses/{expenseId} {
+      function isSignedIn() {
+        return request.auth != null;
+      }
+
+      function isOwner(userId) {
+        return request.auth.uid == userId;
+      }
+
+      allow get: if isSignedIn() && isOwner(userId);
+      allow list: if isSignedIn() && isOwner(userId);
+      allow create: if isSignedIn() && isOwner(userId) && request.resource.data.userId == userId;
+      allow update: if isSignedIn() && isOwner(userId) && resource.data.userId == userId;
+      allow delete: if isSignedIn() && isOwner(userId) && resource.data.userId == userId;
+    }
+
+    /**
+     * @description Rules for the /users/{userId}/incomes/{incomeId} collection.
+     * @path /users/{userId}/incomes/{incomeId}
+     * @allow (create) - Authenticated user creates an income record in their own user space.
+     *          e.g., request.auth.uid = "user123", path = "/users/user123/incomes/income456".
+     * @deny (create) - Authenticated user attempts to create an income record in another user's space.
+     *          e.g., request.auth.uid = "user123", path = "/users/user456/incomes/income456".
+     * @deny (get, list, update, delete) - Any operation by a different user.
+     * @principle Enforces document ownership; only the owner can read/write.
+     */
+    match /users/{userId}/incomes/{incomeId} {
+      function isSignedIn() {
+        return request.auth != null;
+      }
+
+      function isOwner(userId) {
+        return request.auth.uid == userId;
+      }
+
+      allow get: if isSignedIn() && isOwner(userId);
+      allow list: if isSignedIn() && isOwner(userId);
+      allow create: if isSignedIn() && isOwner(userId) && request.resource.data.userId == userId;
+      allow update: if isSignedIn() && isOwner(userId) && resource.data.userId == userId;
+      allow delete: if isSignedIn() && isOwner(userId) && resource.data.userId == userId;
+    }
+
+    /**
+     * @description Rules for the /users/{userId}/categories/{categoryId} collection.
+     * @path /users/{userId}/categories/{categoryId}
+     * @allow (create) - Authenticated user creates a category in their own user space.
+     *          e.g., request.auth.uid = "user123", path = "/users/user123/categories/category456".
+     * @deny (create) - Authenticated user attempts to create a category in another user's space.
+     *          e.g., request.auth.uid = "user123", path = "/users/user456/categories/category456".
+     * @deny (get, list, update, delete) - Any operation by a different user.
+     * @principle Enforces document ownership; only the owner can read/write.
+     */
+    match /users/{userId}/categories/{categoryId} {
+      function isSignedIn() {
+        return request.auth != null;
+      }
+
+      function isOwner(userId) {
+        return request.auth.uid == userId;
+      }
+
+      allow get: if isSignedIn() && isOwner(userId);
+      allow list: if isSignedIn() && isOwner(userId);
+      allow create: if isSignedIn() && isOwner(userId) && request.resource.data.userId == userId;
+      allow update: if isSignedIn() && isOwner(userId) && resource.data.userId == userId;
+      allow delete: if isSignedIn() && isOwner(userId) && resource.data.userId == userId;
+    }
+
+    /**
+     * @description Rules for the /users/{userId}/properties/{propertyId} collection.
+     * @path /users/{userId}/properties/{propertyId}
+     * @allow (create) - Authenticated user creates a property in their own user space.
+     *          e.g., request.auth.uid = "user123", path = "/users/user123/properties/property456".
+     * @deny (create) - Authenticated user attempts to create a property in another user's space.
+     *          e.g., request.auth.uid = "user123", path = "/users/user456/properties/property456".
+     * @deny (get, list, update, delete) - Any operation by a different user.
+     * @principle Enforces document ownership; only the owner can read/write.
+     */
+    match /users/{userId}/properties/{propertyId} {
+      function isSignedIn() {
+        return request.auth != null;
+      }
+
+      function isOwner(userId) {
+        return request.auth.uid == userId;
+      }
+
+      allow get: if isSignedIn() && isOwner(userId);
+      allow list: if isSignedIn() && isOwner(userId);
+      allow create: if isSignedIn() && isOwner(userId) && request.resource.data.userId == userId;
+      allow update: if isSignedIn() && isOwner(userId) && resource.data.userId == userId;
+      allow delete: if isSignedIn() && isOwner(userId) && resource.data.userId == userId;
+    }
+
+    /**
+     * @description Rules for the /users/{userId}/properties/{propertyId}/expenses/{propertyExpenseId} collection.
+     * @path /users/{userId}/properties/{propertyId}/expenses/{propertyExpenseId}
+     * @allow (create) - Authenticated user creates a property expense in their own user space.
+     *          e.g., request.auth.uid = "user123", path = "/users/user123/properties/property456/expenses/expense789".
+     * @deny (create) - Authenticated user attempts to create a property expense in another user's space.
+     *          e.g., request.auth.uid = "user123", path = "/users/user456/properties/property456/expenses/expense789".
+     * @deny (get, list, update, delete) - Any operation by a different user.
+     * @principle Enforces document ownership; only the owner can read/write.
+     */
+    match /users/{userId}/properties/{propertyId}/expenses/{propertyExpenseId} {
+      function isSignedIn() {
+        return request.auth != null;
+      }
+
+      function isOwner(userId) {
+        return request.auth.uid == userId;
+      }
+
+      allow get: if isSignedIn() && isOwner(userId);
+      allow list: if isSignedIn() && isOwner(userId);
+      allow create: if isSignedIn() && isOwner(userId) && request.resource.data.propertyId == propertyId;
+      allow update: if isSignedIn() && isOwner(userId) && request.resource.data.propertyId == propertyId;
+      allow delete: if isSignedIn() && isOwner(userId) && request.resource.data.propertyId == propertyId;
+    }
+  }
+}
