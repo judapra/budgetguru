@@ -5,8 +5,8 @@ import { cn } from '@/lib/utils';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
 
 export const metadata: Metadata = {
-  title: 'Guru do Orçamento',
-  description: 'Seu gerenciador de finanças pessoais e empresariais.',
+  title: 'Budget Guru',
+  description: 'Your personal and business finance manager.',
 };
 
 export default function RootLayout({
