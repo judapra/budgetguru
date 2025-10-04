@@ -27,7 +27,7 @@ import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
-import type { Category } from '@/app/incomes/page';
+import type { Category } from '@/lib/types';
 
 const formSchema = z.object({
   name: z.string().min(2, 'O nome da categoria é obrigatório.'),

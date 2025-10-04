@@ -7,7 +7,7 @@ import { Loader2, PlusCircle } from 'lucide-react';
 import { IncomeForm } from '@/components/business/incomes/income-form';
 import { IncomesTable } from '@/components/business/incomes/incomes-table';
 import { Button } from '@/components/ui/button';
-import type { Category, Income } from '@/app/incomes/page';
+import type { Category, Income } from '@/lib/types';
 
 export default function BusinessIncomesPage() {
   const { user } = useUser();

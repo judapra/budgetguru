@@ -5,7 +5,7 @@ import { AppHeader } from "@/components/app-header";
 import { Loader2, PlusCircle } from 'lucide-react';
 import { CategoryForm } from '@/components/business/categories/category-form';
 import { CategoriesList } from '@/components/business/categories/categories-list';
-import type { Category } from '@/app/incomes/page';
+import type { Category } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 
 export default function BusinessCategoriesPage() {
