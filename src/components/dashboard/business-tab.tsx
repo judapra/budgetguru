@@ -5,10 +5,7 @@ import { collection, query, orderBy } from 'firebase/firestore';
 import { OverviewChart } from "./overview-chart";
 import { RecentTransactions } from "./recent-transactions";
 import { Loader2 } from 'lucide-react';
-import type { Income } from '@/app/incomes/page';
-import type { Expense } from '@/app/expenses/page';
-import type { Transaction } from '@/lib/data';
-import type { Category } from '@/app/incomes/page';
+import type { Income, Expense, Category, Transaction } from '@/lib/types';
 import Link from 'next/link';
 import { Button } from '../ui/button';
 import { ArrowRight } from 'lucide-react';
@@ -123,7 +120,7 @@ export function BusinessTab() {
 
     if (!hasData) {
         return (
-            <div className="text-center p-8 border rounded-lg">
+            <div className="text-center p-8 border rounded-lg max-w-2xl mx-auto">
                 <h2 className="text-xl font-bold font-headline mb-2">Comece a Gerenciar as Finanças do seu Negócio</h2>
                 <p className="text-muted-foreground mb-4">Cadastre suas receitas e despesas de negócio para ver seu dashboard financeiro.</p>
                 <div className='flex gap-4 justify-center'>

@@ -13,7 +13,7 @@ import {
   navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu"
 import React from "react"
-import { Briefcase } from "lucide-react"
+import { Briefcase, CircleDollarSign } from "lucide-react"
 
 export function MainNav({
   className,
@@ -43,27 +43,25 @@ export function MainNav({
             </NavigationMenuLink>
           </Link>
         </NavigationMenuItem>
+
         <NavigationMenuItem>
-            <Link href="/expenses" legacyBehavior passHref>
-                <NavigationMenuLink active={pathname.startsWith('/expenses')} className={navigationMenuTriggerStyle()}>
-                    Despesas
-                </NavigationMenuLink>
-            </Link>
+          <NavigationMenuTrigger>
+            <CircleDollarSign className="mr-2 h-4 w-4" /> Pessoal
+          </NavigationMenuTrigger>
+          <NavigationMenuContent>
+            <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px] ">
+              {personalRoutes.map((component) => (
+                <ListItem
+                  key={component.label}
+                  title={component.label}
+                  href={component.href}
+                >
+                </ListItem>
+              ))}
+            </ul>
+          </NavigationMenuContent>
         </NavigationMenuItem>
-        <NavigationMenuItem>
-            <Link href="/incomes" legacyBehavior passHref>
-                <NavigationMenuLink active={pathname.startsWith('/incomes')} className={navigationMenuTriggerStyle()}>
-                    Receitas
-                </NavigationMenuLink>
-            </Link>
-        </NavigationMenuItem>
-        <NavigationMenuItem>
-            <Link href="/categories" legacyBehavior passHref>
-                <NavigationMenuLink active={pathname.startsWith('/categories')} className={navigationMenuTriggerStyle()}>
-                    Categorias
-                </NavigationMenuLink>
-            </Link>
-        </NavigationMenuItem>
+       
         <NavigationMenuItem>
           <NavigationMenuTrigger>
             <Briefcase className="mr-2 h-4 w-4" /> Negócios

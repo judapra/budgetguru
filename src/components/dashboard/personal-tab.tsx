@@ -5,10 +5,8 @@ import { collection, query, orderBy } from 'firebase/firestore';
 import { OverviewChart } from "./overview-chart";
 import { RecentTransactions } from "./recent-transactions";
 import { Loader2 } from 'lucide-react';
-import type { Income } from '@/app/incomes/page';
-import type { Expense } from '@/app/expenses/page';
-import type { Transaction } from '@/lib/data';
-import type { Category } from '@/app/incomes/page';
+import type { Income, Expense, Transaction, Category } from '@/lib/types';
+
 
 const groupTransactionsByMonth = (incomes: Income[], expenses: Expense[]) => {
     const monthlyData: { [key: string]: { month: string; income: number; expenses: number } } = {};
