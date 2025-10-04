@@ -115,15 +115,15 @@ export function PersonalTab() {
     }
 
     return (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            <div className="lg:col-span-3">
+        <div className="grid gap-6">
+            <div className="col-span-1">
                 <OverviewChart
                     data={chartData}
                     title="Visão Geral Financeira Pessoal"
                     description="Suas receitas e despesas nos últimos meses."
                 />
             </div>
-            <div className="lg:col-span-3">
+            <div className="col-span-1">
                 <RecentTransactions transactions={recentTransactions} />
             </div>
         </div>

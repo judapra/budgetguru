@@ -6,25 +6,11 @@
       "type": "object",
       "description": "Represents a user of the Budget Guru application.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the User entity."
-        },
-        "email": {
-          "type": "string",
-          "description": "User's email address.",
-          "format": "email"
-        },
-        "name": {
-          "type": "string",
-          "description": "The full name of the user."
-        }
+        "id": { "type": "string", "description": "Unique identifier for the User entity." },
+        "email": { "type": "string", "description": "User's email address.", "format": "email" },
+        "name": { "type": "string", "description": "The full name of the user." }
       },
-      "required": [
-        "id",
-        "email",
-        "name"
-      ]
+      "required": ["id", "email", "name"]
     },
     "Expense": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -32,45 +18,15 @@
       "type": "object",
       "description": "Represents an expense record.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the Expense entity."
-        },
-        "userId": {
-          "type": "string",
-          "description": "Reference to User. (Relationship: User 1:N Expense)"
-        },
-        "categoryId": {
-          "type": "string",
-          "description": "Reference to Category. (Relationship: Category 1:N Expense)"
-        },
-        "paymentMethod": {
-          "type": "string",
-          "description": "The method of payment used (e.g., credit card, cash)."
-        },
-        "date": {
-          "type": "string",
-          "description": "The date of the expense.",
-          "format": "date-time"
-        },
-        "amount": {
-          "type": "number",
-          "description": "The amount of the expense."
-        },
-        "details": {
-          "type": "string",
-          "description": "Detailed description of the expense."
-        }
+        "id": { "type": "string", "description": "Unique identifier for the Expense entity." },
+        "userId": { "type": "string", "description": "Reference to User. (Relationship: User 1:N Expense)" },
+        "categoryId": { "type": "string", "description": "Reference to Category. (Relationship: Category 1:N Expense)" },
+        "paymentMethod": { "type": "string", "description": "The method of payment used (e.g., credit card, cash)." },
+        "date": { "type": "string", "description": "The date of the expense.", "format": "date-time" },
+        "amount": { "type": "number", "description": "The amount of the expense." },
+        "details": { "type": "string", "description": "Detailed description of the expense." }
       },
-      "required": [
-        "id",
-        "userId",
-        "categoryId",
-        "paymentMethod",
-        "date",
-        "amount",
-        "details"
-      ]
+      "required": ["id", "userId", "categoryId", "paymentMethod", "date", "amount", "details"]
     },
     "Income": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -78,45 +34,15 @@
       "type": "object",
       "description": "Represents an income record.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the Income entity."
-        },
-        "userId": {
-          "type": "string",
-          "description": "Reference to User. (Relationship: User 1:N Income)"
-        },
-        "categoryId": {
-          "type": "string",
-          "description": "Reference to Category. (Relationship: Category 1:N Income)"
-        },
-        "receiptMethod": {
-          "type": "string",
-          "description": "The method of receipt (e.g., direct deposit, cash)."
-        },
-        "date": {
-          "type": "string",
-          "description": "The date of the income.",
-          "format": "date-time"
-        },
-        "amount": {
-          "type": "number",
-          "description": "The amount of the income."
-        },
-        "details": {
-          "type": "string",
-          "description": "Detailed description of the income."
-        }
+        "id": { "type": "string", "description": "Unique identifier for the Income entity." },
+        "userId": { "type": "string", "description": "Reference to User. (Relationship: User 1:N Income)" },
+        "categoryId": { "type": "string", "description": "Reference to Category. (Relationship: Category 1:N Income)" },
+        "receiptMethod": { "type": "string", "description": "The method of receipt (e.g., direct deposit, cash)." },
+        "date": { "type": "string", "description": "The date of the income.", "format": "date-time" },
+        "amount": { "type": "number", "description": "The amount of the income." },
+        "details": { "type": "string", "description": "Detailed description of the income." }
       },
-      "required": [
-        "id",
-        "userId",
-        "categoryId",
-        "receiptMethod",
-        "date",
-        "amount",
-        "details"
-      ]
+      "required": ["id", "userId", "categoryId", "receiptMethod", "date", "amount", "details"]
     },
     "Category": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -124,29 +50,12 @@
       "type": "object",
       "description": "Represents a category for income or expenses.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the Category entity."
-        },
-        "userId": {
-          "type": "string",
-          "description": "Reference to User. (Relationship: User 1:N Category)"
-        },
-        "name": {
-          "type": "string",
-          "description": "The name of the category (e.g., Groceries, Salary)."
-        },
-        "type": {
-          "type": "string",
-          "description": "The type of category (e.g., Income, Expense)."
-        }
+        "id": { "type": "string", "description": "Unique identifier for the Category entity." },
+        "userId": { "type": "string", "description": "Reference to User. (Relationship: User 1:N Category)" },
+        "name": { "type": "string", "description": "The name of the category (e.g., Groceries, Salary)." },
+        "type": { "type": "string", "description": "The type of category (e.g., Income, Expense)." }
       },
-      "required": [
-        "id",
-        "userId",
-        "name",
-        "type"
-      ]
+      "required": ["id", "userId", "name", "type"]
     },
     "Property": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -154,44 +63,15 @@
       "type": "object",
       "description": "Represents a real estate property.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the Property entity."
-        },
-        "userId": {
-          "type": "string",
-          "description": "Reference to User. (Relationship: User 1:N Property)"
-        },
-        "name": {
-          "type": "string",
-          "description": "The name of the property."
-        },
-        "address": {
-          "type": "string",
-          "description": "The address of the property."
-        },
-        "grossRent": {
-          "type": "number",
-          "description": "The gross rent of the property."
-        },
-        "netRent": {
-          "type": "number",
-          "description": "The net rent of the property."
-        },
-        "adminFee": {
-          "type": "number",
-          "description": "The administration fee for the property."
-        }
+        "id": { "type": "string", "description": "Unique identifier for the Property entity." },
+        "userId": { "type": "string", "description": "Reference to User. (Relationship: User 1:N Property)" },
+        "name": { "type": "string", "description": "The name of the property." },
+        "address": { "type": "string", "description": "The address of the property." },
+        "grossRent": { "type": "number", "description": "The gross rent of the property." },
+        "netRent": { "type": "number", "description": "The net rent of the property." },
+        "adminFee": { "type": "number", "description": "The administration fee for the property." }
       },
-      "required": [
-        "id",
-        "userId",
-        "name",
-        "address",
-        "grossRent",
-        "netRent",
-        "adminFee"
-      ]
+      "required": ["id", "userId", "name", "address", "grossRent", "netRent", "adminFee"]
     },
     "PropertyExpense": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -199,35 +79,13 @@
       "type": "object",
       "description": "Represents an expense associated with a real estate property.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the PropertyExpense entity."
-        },
-        "propertyId": {
-          "type": "string",
-          "description": "Reference to Property. (Relationship: Property 1:N PropertyExpense)"
-        },
-        "date": {
-          "type": "string",
-          "description": "The date of the expense.",
-          "format": "date-time"
-        },
-        "description": {
-          "type": "string",
-          "description": "Description of the expense."
-        },
-        "amount": {
-          "type": "number",
-          "description": "The amount of the expense."
-        }
+        "id": { "type": "string", "description": "Unique identifier for the PropertyExpense entity." },
+        "propertyId": { "type": "string", "description": "Reference to Property. (Relationship: Property 1:N PropertyExpense)" },
+        "date": { "type": "string", "description": "The date of the expense.", "format": "date-time" },
+        "description": { "type": "string", "description": "Description of the expense." },
+        "amount": { "type": "number", "description": "The amount of the expense." }
       },
-      "required": [
-        "id",
-        "propertyId",
-        "date",
-        "description",
-        "amount"
-      ]
+      "required": ["id", "propertyId", "date", "description", "amount"]
     }
   },
   "auth": {
@@ -236,72 +94,98 @@
       "google.com"
     ]
   },
-  "firestore": {
+"firestore": {
     "structure": [
       {
         "path": "/users/{userId}",
-        "schema": {
-          "$ref": "#/entities/User"
-        },
-        "description": "Stores user profile information. Only the authenticated user can access their own profile."
-      },
-      {
-        "path": "/users/{userId}/expenses/{expenseId}",
-        "schema": {
-          "$ref": "#/entities/Expense"
-        },
-        "description": "Stores personal expense records for a specific user. Only the authenticated user can access their own expenses."
-      },
-      {
-        "path": "/users/{userId}/incomes/{incomeId}",
-        "schema": {
-          "$ref": "#/entities/Income"
-        },
-        "description": "Stores personal income records for a specific user. Only the authenticated user can access their own income."
+        "schema": { "$ref": "#/entities/User" },
+        "description": "Stores user profile information.",
+        "permissions": {
+          "read": "request.auth.uid == userId",
+          "write": "request.auth.uid == userId"
+        }
       },
       {
         "path": "/users/{userId}/categories/{categoryId}",
-        "schema": {
-          "$ref": "#/entities/Category"
-        },
-        "description": "Stores personal categories for a specific user's expenses and incomes. Only the authenticated user can access their own categories."
+        "schema": { "$ref": "#/entities/Category" },
+        "description": "Stores personal categories.",
+        "permissions": {
+          "list": "request.auth.uid == userId",
+          "read": "request.auth.uid == userId",
+          "write": "request.auth.uid == userId"
+        }
+      },
+      {
+        "path": "/users/{userId}/expenses/{expenseId}",
+        "schema": { "$ref": "#/entities/Expense" },
+        "description": "Stores personal expense records.",
+        "permissions": {
+          "list": "request.auth.uid == userId",
+          "read": "request.auth.uid == userId",
+          "write": "request.auth.uid == userId"
+        }
+      },
+      {
+        "path": "/users/{userId}/incomes/{incomeId}",
+        "schema": { "$ref": "#/entities/Income" },
+        "description": "Stores personal income records.",
+        "permissions": {
+          "list": "request.auth.uid == userId",
+          "read": "request.auth.uid == userId",
+          "write": "request.auth.uid == userId"
+        }
       },
       {
         "path": "/users/{userId}/business_categories/{categoryId}",
-        "schema": {
-          "$ref": "#/entities/Category"
-        },
-        "description": "Stores business categories for a specific user's expenses and incomes. Only the authenticated user can access their own categories."
+        "schema": { "$ref": "#/entities/Category" },
+        "description": "Stores business categories.",
+        "permissions": {
+          "list": "request.auth.uid == userId",
+          "read": "request.auth.uid == userId",
+          "write": "request.auth.uid == userId"
+        }
       },
       {
         "path": "/users/{userId}/business_expenses/{expenseId}",
-        "schema": {
-          "$ref": "#/entities/Expense"
-        },
-        "description": "Stores business expense records for a specific user. Only the authenticated user can access their own expenses."
+        "schema": { "$ref": "#/entities/Expense" },
+        "description": "Stores business expense records.",
+        "permissions": {
+          "list": "request.auth.uid == userId",
+          "read": "request.auth.uid == userId",
+          "write": "request.auth.uid == userId"
+        }
       },
       {
         "path": "/users/{userId}/business_incomes/{incomeId}",
-        "schema": {
-          "$ref": "#/entities/Income"
-        },
-        "description": "Stores business income records for a specific user. Only the authenticated user can access their own income."
+        "schema": { "$ref": "#/entities/Income" },
+        "description": "Stores business income records.",
+        "permissions": {
+          "list": "request.auth.uid == userId",
+          "read": "request.auth.uid == userId",
+          "write": "request.auth.uid == userId"
+        }
       },
       {
         "path": "/users/{userId}/properties/{propertyId}",
-        "schema": {
-          "$ref": "#/entities/Property"
-        },
-        "description": "Stores properties managed by a specific user. Only the authenticated user can access their own properties."
+        "schema": { "$ref": "#/entities/Property" },
+        "description": "Stores properties managed by a user.",
+        "permissions": {
+          "list": "request.auth.uid == userId",
+          "read": "request.auth.uid == userId",
+          "write": "request.auth.uid == userId"
+        }
       },
       {
         "path": "/users/{userId}/properties/{propertyId}/expenses/{propertyExpenseId}",
-        "schema": {
-          "$ref": "#/entities/PropertyExpense"
-        },
-        "description": "Stores expenses related to a specific property managed by a user. Only the authenticated user can access their own property expenses."
+        "schema": { "$ref": "#/entities/PropertyExpense" },
+        "description": "Stores expenses related to a specific property.",
+        "permissions": {
+          "list": "request.auth.uid == userId",
+          "read": "request.auth.uid == userId",
+          "write": "request.auth.uid == userId"
+        }
       }
     ],
     "reasoning": "The Firestore structure is designed to ensure data isolation between users and efficient querying. Each user has their own dedicated space for personal and business finances (expenses, incomes, categories) and properties, enabling secure and scalable access control. This design leverages path-based ownership for private data. The design ensures Authorization Independence by avoiding `get()` calls in security rules, relying solely on `request.auth.uid` and the hierarchical path structure to validate ownership. Segregation is achieved as all documents within a user's collection share the same security posture. This makes securing `list` operations straightforward, ensuring that users can only access their own data (QAPs). The structure facilitates the integrity of ownership by associating each document with a specific `userId`. This explicit association, combined with Firestore security rules, guarantees that only authenticated users can access and manipulate their own data."
-  }
+}
 }

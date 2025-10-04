@@ -116,7 +116,7 @@ export function BusinessTab() {
         );
     }
     
-    const hasData = incomes?.length || expenses?.length;
+    const hasData = incomes && expenses && (incomes.length > 0 || expenses.length > 0);
 
     if (!hasData) {
         return (
@@ -142,15 +142,15 @@ export function BusinessTab() {
     }
 
     return (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            <div className="lg:col-span-3">
+        <div className="grid gap-6">
+            <div className="col-span-1">
                 <OverviewChart
                     data={chartData}
                     title="Visão Geral de Negócios"
                     description="Suas receitas e despesas de negócio nos últimos meses."
                 />
             </div>
-            <div className="lg:col-span-3">
+            <div className="col-span-1">
                 <RecentTransactions transactions={recentTransactions} />
             </div>
         </div>
