@@ -7,23 +7,7 @@ import { Loader2, PlusCircle } from 'lucide-react';
 import { IncomeForm } from '@/components/incomes/income-form';
 import { IncomesTable } from '@/components/incomes/incomes-table';
 import { Button } from '@/components/ui/button';
-
-export type Category = {
-  id: string;
-  name: string;
-  type: 'Income' | 'Expense';
-  userId: string;
-};
-
-export type Income = {
-    id: string;
-    userId: string;
-    categoryId: string;
-    receiptMethod: string;
-    date: string;
-    amount: number;
-    details: string;
-};
+import type { Category, Income } from '@/lib/types';
 
 
 export default function IncomesPage() {

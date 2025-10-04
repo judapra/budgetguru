@@ -6,19 +6,8 @@ import { collection, query, where } from 'firebase/firestore';
 import { Loader2, PlusCircle } from 'lucide-react';
 import { ExpenseForm } from '@/components/expenses/expense-form';
 import { ExpensesTable } from '@/components/expenses/expenses-table';
-import type { Category } from '@/app/incomes/page';
+import type { Category, Expense } from '@/lib/types';
 import { Button } from '@/components/ui/button';
-
-export type Expense = {
-    id: string;
-    userId: string;
-    categoryId: string;
-    paymentMethod: string;
-    date: string;
-    amount: number;
-    details: string;
-};
-
 
 export default function ExpensesPage() {
   const { user } = useUser();

@@ -23,11 +23,11 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Loader2, PlusCircle, Pencil } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
-import type { Category } from '@/app/incomes/page';
+import type { Category } from '@/lib/types';
 
 const formSchema = z.object({
   name: z.string().min(2, 'O nome da categoria é obrigatório.'),

@@ -1,7 +1,7 @@
 'use client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import type { Category } from '@/app/incomes/page';
+import type { Category } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { X, Pencil } from 'lucide-react';
 import { useFirestore } from '@/firebase';

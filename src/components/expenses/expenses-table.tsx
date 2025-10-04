@@ -8,8 +8,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import type { Expense } from '@/app/expenses/page';
-import type { Category } from '@/app/incomes/page';
+import type { Expense, Category } from '@/lib/types';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Trash2, Pencil } from 'lucide-react';
