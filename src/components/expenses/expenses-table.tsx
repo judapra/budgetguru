@@ -11,6 +11,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { Expense } from '@/app/expenses/page';
 import type { Category } from '@/app/incomes/page';
 import { format } from 'date-fns';
+import { Button } from '@/components/ui/button';
+import { Trash2 } from 'lucide-react';
+import { useFirestore } from '@/firebase';
+import { deleteDoc, doc } from 'firebase/firestore';
+import { useToast } from '@/hooks/use-toast';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 type ExpensesTableProps = {
   expenses: Expense[];
@@ -19,6 +26,28 @@ type ExpensesTableProps = {
 
 export function ExpensesTable({ expenses, categories }: ExpensesTableProps) {
   const categoryMap = new Map(categories.map(c => [c.id, c.name]));
+  const firestore = useFirestore();
+  const { toast } = useToast();
+
+  const handleDelete = (expenseId: string, userId: string) => {
+    if (!firestore) return;
+    const expenseDoc = doc(firestore, `users/${userId}/expenses/${expenseId}`);
+
+    deleteDoc(expenseDoc)
+      .then(() => {
+        toast({
+          title: "Sucesso!",
+          description: "Despesa excluída."
+        });
+      })
+      .catch((serverError) => {
+        const permissionError = new FirestorePermissionError({
+            path: expenseDoc.path,
+            operation: 'delete',
+        });
+        errorEmitter.emit('permission-error', permissionError);
+      });
+  };
 
   if (expenses.length === 0) {
     return (
@@ -47,6 +76,7 @@ export function ExpensesTable({ expenses, categories }: ExpensesTableProps) {
               <TableHead>Método</TableHead>
               <TableHead>Data</TableHead>
               <TableHead className="text-right">Valor</TableHead>
+              <TableHead className="w-[80px]">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -58,6 +88,15 @@ export function ExpensesTable({ expenses, categories }: ExpensesTableProps) {
                 <TableCell>{format(new Date(expense.date), 'dd/MM/yyyy')}</TableCell>
                 <TableCell className="text-right text-red-500">
                   - {expense.amount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                </TableCell>
+                <TableCell>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={() => handleDelete(expense.id, expense.userId)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </TableCell>
               </TableRow>
             ))}

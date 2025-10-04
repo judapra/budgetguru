@@ -10,6 +10,14 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { Income, Category } from '@/app/incomes/page';
 import { format } from 'date-fns';
+import { Button } from '@/components/ui/button';
+import { Trash2 } from 'lucide-react';
+import { useFirestore } from '@/firebase';
+import { deleteDoc, doc } from 'firebase/firestore';
+import { useToast } from '@/hooks/use-toast';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
+
 
 type IncomesTableProps = {
   incomes: Income[];
@@ -18,6 +26,28 @@ type IncomesTableProps = {
 
 export function IncomesTable({ incomes, categories }: IncomesTableProps) {
   const categoryMap = new Map(categories.map(c => [c.id, c.name]));
+  const firestore = useFirestore();
+  const { toast } = useToast();
+
+  const handleDelete = (incomeId: string, userId: string) => {
+    if (!firestore) return;
+    const incomeDoc = doc(firestore, `users/${userId}/incomes/${incomeId}`);
+
+    deleteDoc(incomeDoc)
+      .then(() => {
+        toast({
+          title: "Sucesso!",
+          description: "Receita excluída."
+        });
+      })
+      .catch((serverError) => {
+        const permissionError = new FirestorePermissionError({
+            path: incomeDoc.path,
+            operation: 'delete',
+        });
+        errorEmitter.emit('permission-error', permissionError);
+      });
+  };
 
   if (incomes.length === 0) {
     return (
@@ -46,6 +76,7 @@ export function IncomesTable({ incomes, categories }: IncomesTableProps) {
               <TableHead>Método</TableHead>
               <TableHead>Data</TableHead>
               <TableHead className="text-right">Valor</TableHead>
+              <TableHead className="w-[80px]">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -57,6 +88,15 @@ export function IncomesTable({ incomes, categories }: IncomesTableProps) {
                 <TableCell>{format(new Date(income.date), 'dd/MM/yyyy')}</TableCell>
                 <TableCell className="text-right text-green-500">
                   {income.amount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                </TableCell>
+                <TableCell>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={() => handleDelete(income.id, income.userId)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </TableCell>
               </TableRow>
             ))}
