@@ -1,20 +1,28 @@
 'use client';
-import { useUser } from '@/firebase';
+import { useUser, useFirestore } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { AppHeader } from '@/components/app-header';
 import { Dashboard } from '@/components/dashboard/dashboard';
 import { Loader2 } from 'lucide-react';
+import { updateUserProfile } from '@/firebase/user-actions';
 
 export default function Home() {
   const { user, isUserLoading } = useUser();
+  const firestore = useFirestore();
   const router = useRouter();
 
   useEffect(() => {
-    if (!isUserLoading && !user) {
-      router.push('/login');
+    if (!isUserLoading) {
+      if (user) {
+        // User is logged in, ensure their profile exists in Firestore
+        updateUserProfile(firestore, user);
+      } else {
+        // User is not logged in, redirect to login
+        router.push('/login');
+      }
     }
-  }, [user, isUserLoading, router]);
+  }, [user, isUserLoading, router, firestore]);
 
   if (isUserLoading || !user) {
     return (
