@@ -1,14 +1,47 @@
 'use client';
+import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { collection } from 'firebase/firestore';
 import { AppHeader } from "@/components/app-header";
+import { Loader2 } from 'lucide-react';
+import { CategoryForm } from '@/components/categories/category-form';
+import { CategoriesList } from '@/components/categories/categories-list';
+import type { Category } from '@/app/incomes/page';
 
 export default function CategoriesPage() {
+  const { user } = useUser();
+  const firestore = useFirestore();
+
+  const categoriesQuery = useMemoFirebase(() => {
+    if (!user || !firestore) return null;
+    return collection(firestore, `users/${user.uid}/categories`);
+  }, [user, firestore]);
+
+  const { data: categories, isLoading } = useCollection<Category>(categoriesQuery);
+
+  const incomeCategories = categories?.filter(c => c.type === 'Income') || [];
+  const expenseCategories = categories?.filter(c => c.type === 'Expense') || [];
 
   return (
     <div className="flex flex-col min-h-screen">
       <AppHeader />
       <main className="flex-1 p-4 md:p-8">
-        <h1 className="text-2xl font-bold font-headline mb-4">Categorias</h1>
-        <p>Aqui você poderá cadastrar e visualizar suas categorias.</p>
+        <div className="max-w-4xl mx-auto">
+          <div className="flex justify-between items-center mb-6">
+            <h1 className="text-2xl font-bold font-headline">Categorias</h1>
+            {user && <CategoryForm userId={user.uid} />}
+          </div>
+
+          {isLoading ? (
+            <div className="flex justify-center items-center h-64">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+          ) : (
+            <div className="grid md:grid-cols-2 gap-8">
+              <CategoriesList title="Categorias de Receita" categories={incomeCategories} />
+              <CategoriesList title="Categorias de Despesa" categories={expenseCategories} />
+            </div>
+          )}
+        </div>
       </main>
     </div>
   );
