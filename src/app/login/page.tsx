@@ -1,6 +1,6 @@
 'use client';
-import { useState } from 'react';
-import { useRouter, redirect } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useUser } from '@/firebase';
 import {
   GoogleAuthProvider,
@@ -32,13 +32,19 @@ export default function LoginPage() {
   const [isSigningIn, setIsSigningIn] = useState(false);
   const [isSigningInWithGoogle, setIsSigningInWithGoogle] = useState(false);
 
+  useEffect(() => {
+    if (!isUserLoading && user) {
+      router.push('/');
+    }
+  }, [user, isUserLoading, router]);
+
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!auth) return;
     setIsSigningIn(true);
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      router.push('/');
+      // O useEffect cuidará do redirecionamento
     } catch (error: any) {
       console.error(error);
       toast({
@@ -69,16 +75,12 @@ export default function LoginPage() {
     }
   };
 
-  if (isUserLoading) {
+  if (isUserLoading || user) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
       </div>
     );
-  }
-
-  if (user) {
-    return redirect('/');
   }
 
   return (

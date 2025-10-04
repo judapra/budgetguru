@@ -1,6 +1,6 @@
 'use client';
-import { useState } from 'react';
-import { useRouter, redirect } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useUser } from '@/firebase';
 import {
   createUserWithEmailAndPassword,
@@ -33,6 +33,12 @@ export default function SignupPage() {
   const [isSigningUp, setIsSigningUp] = useState(false);
   const [isSigningInWithGoogle, setIsSigningInWithGoogle] = useState(false);
 
+  useEffect(() => {
+    if (!isUserLoading && user) {
+      router.push('/');
+    }
+  }, [user, isUserLoading, router]);
+
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (password !== confirmPassword) {
@@ -47,7 +53,7 @@ export default function SignupPage() {
     setIsSigningUp(true);
     try {
       await createUserWithEmailAndPassword(auth, email, password);
-      router.push('/');
+      // O useEffect cuidará do redirecionamento
     } catch (error: any) {
       console.error(error);
       let description = 'Ocorreu um erro ao criar sua conta. Tente novamente.';
@@ -84,16 +90,12 @@ export default function SignupPage() {
     }
   };
 
-  if (isUserLoading) {
+  if (isUserLoading || user) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
       </div>
     );
-  }
-
-  if (user) {
-    return redirect('/');
   }
 
   return (
