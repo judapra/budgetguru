@@ -3,6 +3,17 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 
 import { cn } from "@/lib/utils"
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+  navigationMenuTriggerStyle,
+} from "@/components/ui/navigation-menu"
+import React from "react"
+import { Briefcase } from "lucide-react"
 
 export function MainNav({
   className,
@@ -10,30 +21,94 @@ export function MainNav({
 }: React.HTMLAttributes<HTMLElement>) {
   const pathname = usePathname();
 
-  const routes = [
-    { href: '/', label: 'Dashboard', active: pathname === '/' },
-    { href: '/expenses', label: 'Despesas', active: pathname === '/expenses' },
-    { href: '/incomes', label: 'Receitas', active: pathname === '/incomes' },
-    { href: '/categories', label: 'Categorias', active: pathname === '/categories' },
+  const personalRoutes = [
+    { href: '/expenses', label: 'Despesas Pessoais' },
+    { href: '/incomes', label: 'Receitas Pessoais' },
+    { href: '/categories', label: 'Categorias Pessoais' },
+  ]
+
+  const businessRoutes = [
+    { href: '/business/expenses', label: 'Despesas de Negócios' },
+    { href: '/business/incomes', label: 'Receitas de Negócios' },
+    { href: '/business/categories', label: 'Categorias de Negócios' },
   ]
 
   return (
-    <nav
-      className={cn("hidden md:flex items-center space-x-4 lg:space-x-6", className)}
-      {...props}
-    >
-      {routes.map((route) => (
-        <Link
-          key={route.href}
-          href={route.href}
-          className={cn(
-            "text-sm font-medium transition-colors hover:text-primary",
-            route.active ? "text-primary font-bold" : "text-muted-foreground"
-          )}
-        >
-          {route.label}
-        </Link>
-      ))}
-    </nav>
+    <NavigationMenu className={cn("hidden md:flex", className)} {...props}>
+      <NavigationMenuList>
+        <NavigationMenuItem>
+          <Link href="/" legacyBehavior passHref>
+            <NavigationMenuLink active={pathname === '/'} className={navigationMenuTriggerStyle()}>
+              Dashboard
+            </NavigationMenuLink>
+          </Link>
+        </NavigationMenuItem>
+        <NavigationMenuItem>
+            <Link href="/expenses" legacyBehavior passHref>
+                <NavigationMenuLink active={pathname.startsWith('/expenses')} className={navigationMenuTriggerStyle()}>
+                    Despesas
+                </NavigationMenuLink>
+            </Link>
+        </NavigationMenuItem>
+        <NavigationMenuItem>
+            <Link href="/incomes" legacyBehavior passHref>
+                <NavigationMenuLink active={pathname.startsWith('/incomes')} className={navigationMenuTriggerStyle()}>
+                    Receitas
+                </NavigationMenuLink>
+            </Link>
+        </NavigationMenuItem>
+        <NavigationMenuItem>
+            <Link href="/categories" legacyBehavior passHref>
+                <NavigationMenuLink active={pathname.startsWith('/categories')} className={navigationMenuTriggerStyle()}>
+                    Categorias
+                </NavigationMenuLink>
+            </Link>
+        </NavigationMenuItem>
+        <NavigationMenuItem>
+          <NavigationMenuTrigger>
+            <Briefcase className="mr-2 h-4 w-4" /> Negócios
+          </NavigationMenuTrigger>
+          <NavigationMenuContent>
+            <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px] ">
+              {businessRoutes.map((component) => (
+                <ListItem
+                  key={component.label}
+                  title={component.label}
+                  href={component.href}
+                >
+                </ListItem>
+              ))}
+            </ul>
+          </NavigationMenuContent>
+        </NavigationMenuItem>
+      </NavigationMenuList>
+    </NavigationMenu>
   )
 }
+
+
+const ListItem = React.forwardRef<
+  React.ElementRef<"a">,
+  React.ComponentPropsWithoutRef<"a">
+>(({ className, title, children, ...props }, ref) => {
+  return (
+    <li>
+      <NavigationMenuLink asChild>
+        <a
+          ref={ref}
+          className={cn(
+            "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
+            className
+          )}
+          {...props}
+        >
+          <div className="text-sm font-medium leading-none">{title}</div>
+          <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+            {children}
+          </p>
+        </a>
+      </NavigationMenuLink>
+    </li>
+  )
+})
+ListItem.displayName = "ListItem"
