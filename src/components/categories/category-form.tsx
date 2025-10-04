@@ -1,10 +1,10 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useFirestore } from '@/firebase';
-import { addDoc, collection } from 'firebase/firestore';
+import { addDoc, collection, doc, setDoc } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -23,10 +23,11 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Loader2, PlusCircle } from 'lucide-react';
+import { Loader2, PlusCircle, Pencil } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+import type { Category } from '@/app/incomes/page';
 
 const formSchema = z.object({
   name: z.string().min(2, 'O nome da categoria é obrigatório.'),
@@ -37,17 +38,39 @@ const formSchema = z.object({
 
 type CategoryFormProps = {
   userId: string;
+  category?: Category;
+  children: React.ReactNode;
 };
 
-export function CategoryForm({ userId }: CategoryFormProps) {
+export function CategoryForm({ userId, category, children }: CategoryFormProps) {
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const firestore = useFirestore();
   const { toast } = useToast();
+  const isEditing = !!category;
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
+    defaultValues: {
+        name: '',
+        type: 'Expense',
+    }
   });
+
+  useEffect(() => {
+    if (category) {
+        form.reset({
+            name: category.name,
+            type: category.type,
+        });
+    } else {
+        form.reset({
+            name: '',
+            type: 'Expense',
+        });
+    }
+  }, [category, form]);
+
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (!firestore) return;
@@ -59,24 +82,44 @@ export function CategoryForm({ userId }: CategoryFormProps) {
     };
 
     try {
-      const categoriesCollection = collection(firestore, `users/${userId}/categories`);
-      addDoc(categoriesCollection, categoryData)
-        .then(() => {
-          toast({
-            title: 'Sucesso!',
-            description: 'Sua categoria foi cadastrada.',
+      if (isEditing) {
+        const categoryDoc = doc(firestore, `users/${userId}/categories/${category.id}`);
+        setDoc(categoryDoc, categoryData)
+          .then(() => {
+            toast({
+              title: 'Sucesso!',
+              description: 'Sua categoria foi atualizada.',
+            });
+            setOpen(false);
+          })
+          .catch(async (serverError) => {
+            const permissionError = new FirestorePermissionError({
+              path: categoryDoc.path,
+              operation: 'update',
+              requestResourceData: categoryData,
+            });
+            errorEmitter.emit('permission-error', permissionError);
           });
-          form.reset();
-          setOpen(false);
-        })
-        .catch(async (serverError) => {
-          const permissionError = new FirestorePermissionError({
-            path: categoriesCollection.path,
-            operation: 'create',
-            requestResourceData: categoryData,
+      } else {
+        const categoriesCollection = collection(firestore, `users/${userId}/categories`);
+        addDoc(categoriesCollection, categoryData)
+          .then(() => {
+            toast({
+              title: 'Sucesso!',
+              description: 'Sua categoria foi cadastrada.',
+            });
+            form.reset({ name: '', type: 'Expense' });
+            setOpen(false);
+          })
+          .catch(async (serverError) => {
+            const permissionError = new FirestorePermissionError({
+              path: categoriesCollection.path,
+              operation: 'create',
+              requestResourceData: categoryData,
+            });
+            errorEmitter.emit('permission-error', permissionError);
           });
-          errorEmitter.emit('permission-error', permissionError);
-        });
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -85,14 +128,11 @@ export function CategoryForm({ userId }: CategoryFormProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="font-headline">
-          <PlusCircle className="mr-2 h-4 w-4" />
-          Nova Categoria
-        </Button>
+        {children}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle className="font-headline">Cadastrar Nova Categoria</DialogTitle>
+          <DialogTitle className="font-headline">{isEditing ? 'Editar Categoria' : 'Cadastrar Nova Categoria'}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
@@ -118,8 +158,9 @@ export function CategoryForm({ userId }: CategoryFormProps) {
                   <FormControl>
                     <RadioGroup
                       onValueChange={field.onChange}
-                      defaultValue={field.value}
+                      value={field.value}
                       className="flex space-x-4"
+                      disabled={isEditing}
                     >
                       <FormItem className="flex items-center space-x-2 space-y-0">
                         <FormControl>
@@ -141,7 +182,7 @@ export function CategoryForm({ userId }: CategoryFormProps) {
             />
             <Button type="submit" disabled={isSubmitting} className="w-full font-headline">
               {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Salvar Categoria
+              {isEditing ? 'Salvar Alterações' : 'Salvar Categoria'}
             </Button>
           </form>
         </Form>

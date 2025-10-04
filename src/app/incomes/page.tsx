@@ -3,9 +3,10 @@ import { useMemo } from 'react';
 import { AppHeader } from "@/components/app-header";
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, where } from 'firebase/firestore';
-import { Loader2 } from 'lucide-react';
+import { Loader2, PlusCircle } from 'lucide-react';
 import { IncomeForm } from '@/components/incomes/income-form';
 import { IncomesTable } from '@/components/incomes/incomes-table';
+import { Button } from '@/components/ui/button';
 
 export type Category = {
   id: string;
@@ -54,7 +55,14 @@ export default function IncomesPage() {
         <div className="max-w-4xl mx-auto">
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-2xl font-bold font-headline">Receitas</h1>
-            {user && firestore && <IncomeForm categories={categories || []} userId={user.uid} />}
+            {user && firestore && (
+              <IncomeForm categories={categories || []} userId={user.uid}>
+                <Button className="font-headline">
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  Nova Receita
+                </Button>
+              </IncomeForm>
+            )}
           </div>
 
           {isLoading ? (

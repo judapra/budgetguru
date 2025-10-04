@@ -3,12 +3,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import type { Category } from '@/app/incomes/page';
 import { Button } from '@/components/ui/button';
-import { X } from 'lucide-react';
+import { X, Pencil } from 'lucide-react';
 import { useFirestore } from '@/firebase';
 import { deleteDoc, doc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+import { CategoryForm } from './category-form';
 
 
 type CategoriesListProps = {
@@ -61,12 +62,17 @@ export function CategoriesList({ title, categories }: CategoriesListProps) {
       <CardContent>
         <div className="flex flex-wrap gap-2">
           {categories.map((category) => (
-            <Badge key={category.id} variant="secondary" className="text-sm pr-1">
+            <Badge key={category.id} variant="secondary" className="text-sm pr-1 group">
               {category.name}
+              <CategoryForm userId={category.userId} category={category}>
+                <Button variant="ghost" size="icon" className="h-5 w-5 ml-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Pencil className="h-3 w-3" />
+                </Button>
+              </CategoryForm>
               <Button 
                 variant="ghost" 
                 size="icon" 
-                className="h-5 w-5 ml-1"
+                className="h-5 w-5 ml-0 opacity-0 group-hover:opacity-100 transition-opacity"
                 onClick={() => handleDelete(category.id, category.userId)}
               >
                   <X className="h-3 w-3" />

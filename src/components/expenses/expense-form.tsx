@@ -1,10 +1,10 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useFirestore } from '@/firebase';
-import { addDoc, collection } from 'firebase/firestore';
+import { addDoc, collection, doc, setDoc } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -40,6 +40,7 @@ import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import type { Category } from '@/app/incomes/page';
+import type { Expense } from '@/app/expenses/page';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 
@@ -54,13 +55,16 @@ const formSchema = z.object({
 type ExpenseFormProps = {
   categories: Category[];
   userId: string;
+  expense?: Expense;
+  children: React.ReactNode;
 };
 
-export function ExpenseForm({ categories, userId }: ExpenseFormProps) {
+export function ExpenseForm({ categories, userId, expense, children }: ExpenseFormProps) {
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const firestore = useFirestore();
   const { toast } = useToast();
+  const isEditing = !!expense;
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -70,6 +74,26 @@ export function ExpenseForm({ categories, userId }: ExpenseFormProps) {
       paymentMethod: '',
     },
   });
+
+  useEffect(() => {
+    if (isEditing && expense) {
+        form.reset({
+            amount: expense.amount,
+            details: expense.details,
+            categoryId: expense.categoryId,
+            paymentMethod: expense.paymentMethod,
+            date: new Date(expense.date),
+        });
+    } else {
+        form.reset({
+            amount: 0,
+            details: '',
+            paymentMethod: '',
+            categoryId: '',
+            date: undefined,
+        });
+    }
+  }, [expense, isEditing, form]);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (!firestore) return;
@@ -82,25 +106,44 @@ export function ExpenseForm({ categories, userId }: ExpenseFormProps) {
     };
 
     try {
-        const expensesCollection = collection(firestore, `users/${userId}/expenses`);
-        addDoc(expensesCollection, expenseData)
-            .then(() => {
+        if (isEditing) {
+            const expenseDoc = doc(firestore, `users/${userId}/expenses/${expense.id}`);
+            setDoc(expenseDoc, expenseData)
+              .then(() => {
                 toast({
-                    title: 'Sucesso!',
-                    description: 'Sua despesa foi cadastrada.',
+                  title: 'Sucesso!',
+                  description: 'Sua despesa foi atualizada.',
                 });
-                form.reset();
                 setOpen(false);
-            })
-            .catch(async (serverError) => {
+              })
+              .catch(async (serverError) => {
                 const permissionError = new FirestorePermissionError({
-                    path: expensesCollection.path,
-                    operation: 'create',
-                    requestResourceData: expenseData,
+                  path: expenseDoc.path,
+                  operation: 'update',
+                  requestResourceData: expenseData,
                 });
                 errorEmitter.emit('permission-error', permissionError);
-            });
-
+              });
+        } else {
+            const expensesCollection = collection(firestore, `users/${userId}/expenses`);
+            addDoc(expensesCollection, expenseData)
+                .then(() => {
+                    toast({
+                        title: 'Sucesso!',
+                        description: 'Sua despesa foi cadastrada.',
+                    });
+                    form.reset();
+                    setOpen(false);
+                })
+                .catch(async (serverError) => {
+                    const permissionError = new FirestorePermissionError({
+                        path: expensesCollection.path,
+                        operation: 'create',
+                        requestResourceData: expenseData,
+                    });
+                    errorEmitter.emit('permission-error', permissionError);
+                });
+        }
     } finally {
       setIsSubmitting(false);
     }
@@ -109,14 +152,11 @@ export function ExpenseForm({ categories, userId }: ExpenseFormProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="font-headline">
-          <PlusCircle className="mr-2 h-4 w-4" />
-          Nova Despesa
-        </Button>
+        {children}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle className="font-headline">Cadastrar Nova Despesa</DialogTitle>
+          <DialogTitle className="font-headline">{isEditing ? 'Editar Despesa' : 'Cadastrar Nova Despesa'}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -165,7 +205,7 @@ export function ExpenseForm({ categories, userId }: ExpenseFormProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Categoria</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecione uma categoria" />
@@ -226,7 +266,7 @@ export function ExpenseForm({ categories, userId }: ExpenseFormProps) {
             />
             <Button type="submit" disabled={isSubmitting} className="w-full font-headline">
               {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Salvar Despesa
+              {isEditing ? 'Salvar Alterações' : 'Salvar Despesa'}
             </Button>
           </form>
         </Form>

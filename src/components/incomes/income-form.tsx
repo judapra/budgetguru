@@ -1,10 +1,10 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useFirestore } from '@/firebase';
-import { addDoc, collection } from 'firebase/firestore';
+import { addDoc, collection, doc, setDoc } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -35,11 +35,11 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { CalendarIcon, Loader2, PlusCircle } from 'lucide-react';
+import { CalendarIcon, Loader2, PlusCircle, Pencil } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
-import type { Category } from '@/app/incomes/page';
+import type { Category, Income } from '@/app/incomes/page';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 
@@ -54,13 +54,16 @@ const formSchema = z.object({
 type IncomeFormProps = {
   categories: Category[];
   userId: string;
+  income?: Income;
+  children: React.ReactNode;
 };
 
-export function IncomeForm({ categories, userId }: IncomeFormProps) {
+export function IncomeForm({ categories, userId, income, children }: IncomeFormProps) {
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const firestore = useFirestore();
   const { toast } = useToast();
+  const isEditing = !!income;
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -70,6 +73,26 @@ export function IncomeForm({ categories, userId }: IncomeFormProps) {
       receiptMethod: '',
     },
   });
+
+  useEffect(() => {
+    if (isEditing && income) {
+      form.reset({
+        amount: income.amount,
+        details: income.details,
+        categoryId: income.categoryId,
+        receiptMethod: income.receiptMethod,
+        date: new Date(income.date),
+      });
+    } else {
+        form.reset({
+            amount: 0,
+            details: '',
+            receiptMethod: '',
+            categoryId: '',
+            date: undefined,
+        });
+    }
+  }, [income, isEditing, form]);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (!firestore) return;
@@ -82,25 +105,45 @@ export function IncomeForm({ categories, userId }: IncomeFormProps) {
     };
 
     try {
-        const incomesCollection = collection(firestore, `users/${userId}/incomes`);
-        addDoc(incomesCollection, incomeData)
-            .then(() => {
+        if (isEditing) {
+            const incomeDoc = doc(firestore, `users/${userId}/incomes/${income.id}`);
+            setDoc(incomeDoc, incomeData)
+              .then(() => {
                 toast({
-                    title: 'Sucesso!',
-                    description: 'Sua receita foi cadastrada.',
+                  title: 'Sucesso!',
+                  description: 'Sua receita foi atualizada.',
                 });
-                form.reset();
                 setOpen(false);
-            })
-            .catch(async (serverError) => {
+              })
+              .catch(async (serverError) => {
                 const permissionError = new FirestorePermissionError({
-                    path: incomesCollection.path,
-                    operation: 'create',
-                    requestResourceData: incomeData,
+                  path: incomeDoc.path,
+                  operation: 'update',
+                  requestResourceData: incomeData,
                 });
                 errorEmitter.emit('permission-error', permissionError);
-            });
+              });
 
+        } else {
+            const incomesCollection = collection(firestore, `users/${userId}/incomes`);
+            addDoc(incomesCollection, incomeData)
+                .then(() => {
+                    toast({
+                        title: 'Sucesso!',
+                        description: 'Sua receita foi cadastrada.',
+                    });
+                    form.reset();
+                    setOpen(false);
+                })
+                .catch(async (serverError) => {
+                    const permissionError = new FirestorePermissionError({
+                        path: incomesCollection.path,
+                        operation: 'create',
+                        requestResourceData: incomeData,
+                    });
+                    errorEmitter.emit('permission-error', permissionError);
+                });
+        }
     } finally {
       setIsSubmitting(false);
     }
@@ -109,14 +152,11 @@ export function IncomeForm({ categories, userId }: IncomeFormProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="font-headline">
-          <PlusCircle className="mr-2 h-4 w-4" />
-          Nova Receita
-        </Button>
+        {children}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle className="font-headline">Cadastrar Nova Receita</DialogTitle>
+          <DialogTitle className="font-headline">{isEditing ? 'Editar Receita' : 'Cadastrar Nova Receita'}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -165,7 +205,7 @@ export function IncomeForm({ categories, userId }: IncomeFormProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Categoria</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecione uma categoria" />
@@ -226,7 +266,7 @@ export function IncomeForm({ categories, userId }: IncomeFormProps) {
             />
             <Button type="submit" disabled={isSubmitting} className="w-full font-headline">
               {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Salvar Receita
+              {isEditing ? 'Salvar Alterações' : 'Salvar Receita'}
             </Button>
           </form>
         </Form>
