@@ -315,7 +315,7 @@
         }
       },
       {
-        "path": "/users/{userId}/business_expenses",
+        "path": "/users/{userId}/business_expenses/{expenseId}",
         "definition": {
           "entityName": "Expense",
           "schema": {
@@ -326,12 +326,16 @@
             {
               "name": "userId",
               "description": "The unique identifier of the user."
+            },
+            {
+              "name": "expenseId",
+              "description": "The unique identifier of the expense."
             }
           ]
         }
       },
       {
-        "path": "/users/{userId}/business_incomes",
+        "path": "/users/{userId}/business_incomes/{incomeId}",
         "definition": {
           "entityName": "Income",
           "schema": {
@@ -342,12 +346,16 @@
             {
               "name": "userId",
               "description": "The unique identifier of the user."
+            },
+            {
+              "name": "incomeId",
+              "description": "The unique identifier of the income."
             }
           ]
         }
       },
       {
-        "path": "/users/{userId}/business_categories",
+        "path": "/users/{userId}/business_categories/{categoryId}",
         "definition": {
           "entityName": "Category",
           "schema": {
@@ -358,6 +366,10 @@
             {
               "name": "userId",
               "description": "The unique identifier of the user."
+            },
+            {
+              "name": "categoryId",
+              "description": "The unique identifier of the category."
             }
           ]
         }
@@ -410,3 +422,5 @@
     "reasoning": "The Firestore structure is designed to ensure data isolation between users and efficient querying. Each user has their own dedicated space for personal and business finances (expenses, incomes, categories) and properties, enabling secure and scalable access control. This design leverages path-based ownership for private data. The design ensures Authorization Independence by avoiding `get()` calls in security rules, relying solely on `request.auth.uid` and the hierarchical path structure to validate ownership. Segregation is achieved as all documents within a user's collection share the same security posture. This makes securing `list` operations straightforward, ensuring that users can only access their own data (QAPs). The structure facilitates the integrity of ownership by associating each document with a specific `userId`. This explicit association, combined with Firestore security rules, guarantees that only authenticated users can access and manipulate their own data."
   }
 }
+
+    
