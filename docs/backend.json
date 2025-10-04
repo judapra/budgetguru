@@ -315,7 +315,7 @@
         }
       },
       {
-        "path": "/users/{userId}/business_expenses/{expenseId}",
+        "path": "/users/{userId}/business_expenses",
         "definition": {
           "entityName": "Expense",
           "schema": {
@@ -326,16 +326,12 @@
             {
               "name": "userId",
               "description": "The unique identifier of the user."
-            },
-            {
-              "name": "expenseId",
-              "description": "The unique identifier of the expense."
             }
           ]
         }
       },
       {
-        "path": "/users/{userId}/business_incomes/{incomeId}",
+        "path": "/users/{userId}/business_incomes",
         "definition": {
           "entityName": "Income",
           "schema": {
@@ -346,16 +342,12 @@
             {
               "name": "userId",
               "description": "The unique identifier of the user."
-            },
-            {
-              "name": "incomeId",
-              "description": "The unique identifier of the income."
             }
           ]
         }
       },
       {
-        "path": "/users/{userId}/business_categories/{categoryId}",
+        "path": "/users/{userId}/business_categories",
         "definition": {
           "entityName": "Category",
           "schema": {
@@ -366,10 +358,6 @@
             {
               "name": "userId",
               "description": "The unique identifier of the user."
-            },
-            {
-              "name": "categoryId",
-              "description": "The unique identifier of the category."
             }
           ]
         }
