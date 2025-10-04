@@ -6,23 +6,20 @@ import {
 import { BudgetStatus } from "./budget-status";
 import { OverviewChart } from "./overview-chart";
 import { RecentTransactions } from "./recent-transactions";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../ui/card";
 
 export function BusinessTab() {
   return (
-    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-      <div className="lg:col-span-2">
-        <OverviewChart 
-            data={businessChartData}
-            title="Visão Geral Financeira do Negócio"
-            description="Receitas e despesas da sua empresa nos últimos 6 meses."
-        />
-      </div>
-      <div className="space-y-6">
-        <BudgetStatus budgets={businessBudgets} />
-      </div>
-      <div className="lg:col-span-3">
-        <RecentTransactions transactions={businessTransactions} />
-      </div>
-    </div>
+    <Card>
+      <CardHeader>
+        <CardTitle className="font-headline">Em Breve</CardTitle>
+        <CardDescription>A gestão financeira para negócios estará disponível em breve. Fique de olho!</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="flex justify-center items-center h-48 bg-muted rounded-md">
+          <p className="text-muted-foreground">Funcionalidade em desenvolvimento...</p>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
