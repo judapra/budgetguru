@@ -72,10 +72,10 @@ export function IncomesTable({ incomes, categories }: IncomesTableProps) {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead>Data</TableHead>
               <TableHead>Detalhes</TableHead>
               <TableHead>Categoria</TableHead>
               <TableHead>Método</TableHead>
-              <TableHead>Data</TableHead>
               <TableHead className="text-right">Valor</TableHead>
               <TableHead className="w-[80px]">Ações</TableHead>
             </TableRow>
@@ -83,10 +83,10 @@ export function IncomesTable({ incomes, categories }: IncomesTableProps) {
           <TableBody>
             {incomes.map((income) => (
               <TableRow key={income.id}>
+                <TableCell>{format(new Date(income.date), 'dd/MM/yyyy')}</TableCell>
                 <TableCell className="font-medium">{income.details}</TableCell>
                 <TableCell>{categoryMap.get(income.categoryId) || 'N/A'}</TableCell>
                 <TableCell>{income.receiptMethod}</TableCell>
-                <TableCell>{format(new Date(income.date), 'dd/MM/yyyy')}</TableCell>
                 <TableCell className="text-right text-green-500">
                   {income.amount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                 </TableCell>

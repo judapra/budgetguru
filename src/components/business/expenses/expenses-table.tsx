@@ -71,10 +71,10 @@ export function ExpensesTable({ expenses, categories }: ExpensesTableProps) {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead>Data</TableHead>
               <TableHead>Detalhes</TableHead>
               <TableHead>Categoria</TableHead>
               <TableHead>Método</TableHead>
-              <TableHead>Data</TableHead>
               <TableHead className="text-right">Valor</TableHead>
               <TableHead className="w-[80px]">Ações</TableHead>
             </TableRow>
@@ -82,10 +82,10 @@ export function ExpensesTable({ expenses, categories }: ExpensesTableProps) {
           <TableBody>
             {expenses.map((expense) => (
               <TableRow key={expense.id}>
+                <TableCell>{format(new Date(expense.date), 'dd/MM/yyyy')}</TableCell>
                 <TableCell className="font-medium">{expense.details}</TableCell>
                 <TableCell>{categoryMap.get(expense.categoryId) || 'N/A'}</TableCell>
                 <TableCell>{expense.paymentMethod}</TableCell>
-                <TableCell>{format(new Date(expense.date), 'dd/MM/yyyy')}</TableCell>
                 <TableCell className="text-right text-red-500">
                   - {expense.amount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                 </TableCell>

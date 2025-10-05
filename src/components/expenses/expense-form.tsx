@@ -230,22 +230,22 @@ export function ExpenseForm({ categories, userId, expense, children }: ExpenseFo
                   <FormLabel>Data da Despesa</FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
-                        <FormControl>
-                            <div className="relative">
-                                <Input
-                                    value={field.value ? format(field.value, 'dd/MM/yyyy') : ''}
-                                    onChange={(e) => {
-                                        const date = parse(e.target.value, 'dd/MM/yyyy', new Date());
-                                        if (!isNaN(date.getTime())) {
-                                            field.onChange(date);
-                                        }
-                                    }}
-                                    placeholder="DD/MM/AAAA"
-                                    className="w-full pr-10"
-                                />
-                                <CalendarIcon className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-50" />
-                            </div>
-                        </FormControl>
+                      <FormControl>
+                        <Button
+                          variant={"outline"}
+                          className={cn(
+                            "w-full pl-3 text-left font-normal",
+                            !field.value && "text-muted-foreground"
+                          )}
+                        >
+                          {field.value ? (
+                            format(field.value, "dd/MM/yyyy")
+                          ) : (
+                            <span>DD/MM/AAAA</span>
+                          )}
+                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                        </Button>
+                      </FormControl>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
                       <Calendar
@@ -253,7 +253,7 @@ export function ExpenseForm({ categories, userId, expense, children }: ExpenseFo
                         selected={field.value}
                         onSelect={field.onChange}
                         disabled={(date) =>
-                          date > new Date() || date < new Date('1900-01-01')
+                          date > new Date() || date < new Date("1900-01-01")
                         }
                         initialFocus
                       />
