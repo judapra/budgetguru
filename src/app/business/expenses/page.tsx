@@ -2,7 +2,7 @@
 import { useMemo } from 'react';
 import { AppHeader } from "@/components/app-header";
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, where } from 'firebase/firestore';
+import { collection, query, where, orderBy } from 'firebase/firestore';
 import { Loader2, PlusCircle } from 'lucide-react';
 import { ExpenseForm } from '@/components/business/expenses/expense-form';
 import { ExpensesTable } from '@/components/business/expenses/expenses-table';
@@ -23,7 +23,7 @@ export default function BusinessExpensesPage() {
 
   const expensesQuery = useMemoFirebase(() => {
     if (!user || !firestore) return null;
-    return collection(firestore, `users/${user.uid}/business_expenses`);
+    return query(collection(firestore, `users/${user.uid}/business_expenses`), orderBy('date', 'desc'));
   }, [user, firestore]);
 
   const { data: categories, isLoading: isLoadingCategories } = useCollection<Category>(categoriesQuery);
