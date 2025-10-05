@@ -1,3 +1,4 @@
+'use client';
 import {
   Card,
   CardContent,
@@ -15,7 +16,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp, TrendingDown } from "lucide-react";
-import type { Transaction } from "@/lib/data";
+import type { Transaction } from "@/lib/types";
 
 type RecentTransactionsProps = {
   transactions: Transaction[];
@@ -34,14 +35,15 @@ export function RecentTransactions({ transactions }: RecentTransactionsProps) {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-[100px] hidden sm:table-cell">Data</TableHead>
               <TableHead>Transação</TableHead>
               <TableHead className="text-right">Valor</TableHead>
-              <TableHead className="hidden md:table-cell">Data</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {transactions.map((transaction) => (
               <TableRow key={transaction.id}>
+                <TableCell className="hidden sm:table-cell text-muted-foreground">{transaction.date}</TableCell>
                 <TableCell>
                   <div className="flex items-center gap-3">
                     <div className="p-2 bg-muted rounded-full">
@@ -54,9 +56,8 @@ export function RecentTransactions({ transactions }: RecentTransactionsProps) {
                   </div>
                 </TableCell>
                 <TableCell className={`text-right font-medium ${transaction.type === 'income' ? 'text-green-500' : 'text-red-500'}`}>
-                  {transaction.type === 'income' ? '+' : '-'}R${transaction.amount.toLocaleString('pt-BR')}
+                  {transaction.type === 'income' ? '+' : '-'}{transaction.amount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                 </TableCell>
-                <TableCell className="hidden md:table-cell text-muted-foreground">{transaction.date}</TableCell>
               </TableRow>
             ))}
           </TableBody>
