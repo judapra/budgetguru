@@ -1,14 +1,16 @@
 'use client';
 import { useMemo } from 'react';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, orderBy } from 'firebase/firestore';
+import { collection, query, orderBy, where } from 'firebase/firestore';
 import { OverviewChart } from "./overview-chart";
 import { RecentTransactions } from "./recent-transactions";
-import { Loader2 } from 'lucide-react';
+import { Loader2, PlusCircle } from 'lucide-react';
 import type { Income, Expense, Category, Transaction } from '@/lib/types';
 import Link from 'next/link';
 import { Button } from '../ui/button';
 import { ArrowRight } from 'lucide-react';
+import { IncomeForm } from '../business/incomes/income-form';
+import { ExpenseForm } from '../business/expenses/expense-form';
 
 const groupTransactionsByMonth = (incomes: Income[], expenses: Expense[]) => {
     const monthlyData: { [key: string]: { month: string; income: number; expenses: number } } = {};
@@ -90,12 +92,24 @@ export function BusinessTab() {
         return collection(firestore, `users/${user.uid}/business_categories`);
     }, [user, firestore]);
 
+    const incomeCategoriesQuery = useMemoFirebase(() => {
+        if (!user || !firestore) return null;
+        return query(collection(firestore, `users/${user.uid}/business_categories`), where('type', '==', 'Income'));
+    }, [user, firestore]);
+
+    const expenseCategoriesQuery = useMemoFirebase(() => {
+        if (!user || !firestore) return null;
+        return query(collection(firestore, `users/${user.uid}/business_categories`), where('type', '==', 'Expense'));
+    }, [user, firestore]);
+
     const { data: incomes, isLoading: loadingIncomes } = useCollection<Income>(incomesQuery);
     const { data: expenses, isLoading: loadingExpenses } = useCollection<Expense>(expensesQuery);
     const { data: categories, isLoading: loadingCategories } = useCollection<Category>(categoriesQuery);
+    const { data: incomeCategories, isLoading: loadingIncomeCategories } = useCollection<Category>(incomeCategoriesQuery);
+    const { data: expenseCategories, isLoading: loadingExpenseCategories } = useCollection<Category>(expenseCategoriesQuery);
 
 
-    const isLoading = loadingIncomes || loadingExpenses || loadingCategories;
+    const isLoading = loadingIncomes || loadingExpenses || loadingCategories || loadingIncomeCategories || loadingExpenseCategories;
 
     const chartData = useMemo(() => {
         if (!incomes || !expenses) return [];
@@ -117,6 +131,23 @@ export function BusinessTab() {
     }
     
     const hasData = incomes && expenses && (incomes.length > 0 || expenses.length > 0);
+
+    const actions = user && (
+        <div className="flex items-center gap-2">
+            <IncomeForm categories={incomeCategories || []} userId={user.uid}>
+                <Button size="sm" className="font-headline">
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Nova Receita
+                </Button>
+            </IncomeForm>
+            <ExpenseForm categories={expenseCategories || []} userId={user.uid}>
+                <Button size="sm" variant="outline" className="font-headline">
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Nova Despesa
+                </Button>
+            </ExpenseForm>
+        </div>
+    );
 
     if (!hasData) {
         return (
@@ -143,14 +174,15 @@ export function BusinessTab() {
 
     return (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="col-span-1">
+            <div className="col-span-1 lg:col-span-2">
                 <OverviewChart
                     data={chartData}
                     title="Visão Geral de Negócios"
                     description="Suas receitas e despesas de negócio nos últimos meses."
+                    actions={actions}
                 />
             </div>
-            <div className="col-span-1">
+            <div className="col-span-1 lg:col-span-2">
                 <RecentTransactions transactions={recentTransactions} />
             </div>
         </div>

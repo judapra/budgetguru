@@ -20,9 +20,10 @@ type OverviewChartProps = {
     data: any[];
     title: string;
     description: string;
+    actions?: React.ReactNode;
 }
 
-export function OverviewChart({ data, title, description }: OverviewChartProps) {
+export function OverviewChart({ data, title, description, actions }: OverviewChartProps) {
   const chartConfig = {
     income: {
       label: "Receita",
@@ -37,8 +38,13 @@ export function OverviewChart({ data, title, description }: OverviewChartProps) 
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="font-headline">{title}</CardTitle>
-        <CardDescription>{description}</CardDescription>
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
+            <div className="flex-1">
+                <CardTitle className="font-headline">{title}</CardTitle>
+                <CardDescription>{description}</CardDescription>
+            </div>
+            {actions}
+        </div>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
