@@ -40,6 +40,7 @@ export function InputDatePicker({ field }: InputDatePickerProps) {
     } else {
         setInputValue("");
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [field.value]);
 
   // Função chamada quando o usuário digita no campo
@@ -47,12 +48,14 @@ export function InputDatePicker({ field }: InputDatePickerProps) {
     const textValue = e.target.value;
     setInputValue(textValue); // Atualiza o que o usuário vê imediatamente
 
-    // Tenta converter o texto para uma data válida
-    const parsedDate = parse(textValue, "dd/MM/yyyy", new Date());
+    // Tenta converter o texto para uma data válida apenas se tiver o tamanho esperado
+    if (textValue.length === 10) {
+        const parsedDate = parse(textValue, "dd/MM/yyyy", new Date());
 
-    if (isValid(parsedDate)) {
-      // Se for válida, atualiza a "fonte da verdade" no react-hook-form
-      field.onChange(parsedDate);
+        if (isValid(parsedDate)) {
+          // Se for válida, atualiza a "fonte da verdade" no react-hook-form
+          field.onChange(parsedDate);
+        }
     }
   };
 
@@ -73,6 +76,8 @@ export function InputDatePicker({ field }: InputDatePickerProps) {
     if (field.value) {
         const formattedDate = format(field.value, "dd/MM/yyyy");
         setInputValue(formattedDate);
+    } else {
+        setInputValue(""); // Limpa se a data for inválida/removida
     }
   };
 
