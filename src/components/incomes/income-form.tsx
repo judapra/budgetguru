@@ -29,19 +29,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
-import { CalendarIcon, Loader2 } from 'lucide-react';
-import { format } from 'date-fns';
-import { cn } from '@/lib/utils';
+import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { Category, Income } from '@/lib/types';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+import { InputDatePicker } from '../ui/input-date-picker';
 
 const formSchema = z.object({
   amount: z.coerce.number().min(0.01, 'O valor deve ser maior que zero.'),
@@ -229,37 +222,9 @@ export function IncomeForm({ categories, userId, income, children }: IncomeFormP
               render={({ field }) => (
                 <FormItem className="flex flex-col">
                   <FormLabel>Data da Receita</FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant={"outline"}
-                          className={cn(
-                            "w-full pl-3 text-left font-normal",
-                            !field.value && "text-muted-foreground"
-                          )}
-                        >
-                          {field.value ? (
-                            format(field.value, "dd/MM/yyyy")
-                          ) : (
-                            <span>DD/MM/AAAA</span>
-                          )}
-                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={field.value}
-                        onSelect={field.onChange}
-                        disabled={(date) =>
-                          date > new Date() || date < new Date("1900-01-01")
-                        }
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
+                  <FormControl>
+                    <InputDatePicker field={field} />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
