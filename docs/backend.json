@@ -87,6 +87,20 @@
         "amount": { "type": "number", "description": "The amount of the expense." }
       },
       "required": ["id", "propertyId", "date", "description", "amount"]
+    },
+    "PropertyRent": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "PropertyRent",
+      "type": "object",
+      "description": "Represents a rent payment received for a property.",
+      "properties": {
+        "id": { "type": "string", "description": "Unique identifier for the PropertyRent entity." },
+        "propertyId": { "type": "string", "description": "Reference to Property. (Relationship: Property 1:N PropertyRent)" },
+        "date": { "type": "string", "description": "The date the rent was received.", "format": "date-time" },
+        "amount": { "type": "number", "description": "The amount of the rent received." },
+        "details": { "type": "string", "description": "Optional details about the rent payment." }
+      },
+      "required": ["id", "propertyId", "date", "amount"]
     }
   },
   "auth": {
@@ -100,93 +114,53 @@
       {
         "path": "/users/{userId}",
         "schema": { "$ref": "#/entities/User" },
-        "description": "Stores user profile information.",
-        "permissions": {
-          "read": "request.auth.uid == userId",
-          "write": "request.auth.uid == userId"
-        }
+        "description": "Stores user profile information."
       },
       {
         "path": "/users/{userId}/categories/{categoryId}",
         "schema": { "$ref": "#/entities/Category" },
-        "description": "Stores personal categories.",
-        "permissions": {
-          "list": "request.auth.uid == userId",
-          "read": "request.auth.uid == userId",
-          "write": "request.auth.uid == userId"
-        }
+        "description": "Stores personal categories."
       },
       {
         "path": "/users/{userId}/expenses/{expenseId}",
         "schema": { "$ref": "#/entities/Expense" },
-        "description": "Stores personal expense records.",
-        "permissions": {
-          "list": "request.auth.uid == userId",
-          "read": "request.auth.uid == userId",
-          "write": "request.auth.uid == userId"
-        }
+        "description": "Stores personal expense records."
       },
       {
         "path": "/users/{userId}/incomes/{incomeId}",
         "schema": { "$ref": "#/entities/Income" },
-        "description": "Stores personal income records.",
-        "permissions": {
-          "list": "request.auth.uid == userId",
-          "read": "request.auth.uid == userId",
-          "write": "request.auth.uid == userId"
-        }
+        "description": "Stores personal income records."
       },
       {
         "path": "/users/{userId}/business_categories/{categoryId}",
         "schema": { "$ref": "#/entities/Category" },
-        "description": "Stores business categories.",
-        "permissions": {
-          "list": "request.auth.uid == userId",
-          "read": "request.auth.uid == userId",
-          "write": "request.auth.uid == userId"
-        }
+        "description": "Stores business categories."
       },
       {
         "path": "/users/{userId}/business_expenses/{expenseId}",
         "schema": { "$ref": "#/entities/Expense" },
-        "description": "Stores business expense records.",
-        "permissions": {
-          "list": "request.auth.uid == userId",
-          "read": "request.auth.uid == userId",
-          "write": "request.auth.uid == userId"
-        }
+        "description": "Stores business expense records."
       },
       {
         "path": "/users/{userId}/business_incomes/{incomeId}",
         "schema": { "$ref": "#/entities/Income" },
-        "description": "Stores business income records.",
-        "permissions": {
-          "list": "request.auth.uid == userId",
-          "read": "request.auth.uid == userId",
-          "write": "request.auth.uid == userId"
-        }
+        "description": "Stores business income records."
       },
       {
         "path": "/users/{userId}/properties/{propertyId}",
         "schema": { "$ref": "#/entities/Property" },
-        "description": "Stores properties managed by a user.",
-        "permissions": {
-          "list": "request.auth.uid == userId",
-          "read": "request.auth.uid == userId",
-          "write": "request.auth.uid == userId"
-        }
+        "description": "Stores properties managed by a user."
       },
       {
         "path": "/users/{userId}/properties/{propertyId}/expenses/{propertyExpenseId}",
         "schema": { "$ref": "#/entities/PropertyExpense" },
-        "description": "Stores expenses related to a specific property.",
-        "permissions": {
-          "list": "request.auth.uid == userId",
-          "read": "request.auth.uid == userId",
-          "write": "request.auth.uid == userId"
-        }
+        "description": "Stores expenses related to a specific property."
+      },
+      {
+        "path": "/users/{userId}/properties/{propertyId}/rents/{rentId}",
+        "schema": { "$ref": "#/entities/PropertyRent" },
+        "description": "Stores rent payments received for a specific property."
       }
-    ],
-    "reasoning": "The Firestore structure is designed to ensure data isolation between users and efficient querying. Each user has their own dedicated space for personal and business finances (expenses, incomes, categories) and properties, enabling secure and scalable access control. This design leverages path-based ownership for private data. The design ensures Authorization Independence by avoiding `get()` calls in security rules, relying solely on `request.auth.uid` and the hierarchical path structure to validate ownership. Segregation is achieved as all documents within a user's collection share the same security posture. This makes securing `list` operations straightforward, ensuring that users can only access their own data (QAPs). The structure facilitates the integrity of ownership by associating each document with a specific `userId`. This explicit association, combined with Firestore security rules, guarantees that only authenticated users can access and manipulate their own data."
+    ]
   }
 }
