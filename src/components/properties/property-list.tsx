@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/accordion"
 
 import { Badge } from '@/components/ui/badge';
-import type { Property, PropertyExpense } from '@/lib/types';
+import type { Property, PropertyExpense, PropertyRent } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Trash2, Home, MapPin } from 'lucide-react';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
@@ -25,7 +25,10 @@ import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { PropertyForm } from './property-form';
 import { PropertyExpenseForm } from './property-expense-form';
+import { PropertyRentForm } from './property-rent-form';
 import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
+
 
 type PropertyListProps = {
   properties: Property[];
@@ -90,6 +93,64 @@ function PropertyExpenses({ propertyId, userId }: { propertyId: string, userId: 
     )
 }
 
+function PropertyRents({ propertyId, userId }: { propertyId: string, userId: string }) {
+    const firestore = useFirestore();
+    const { toast } = useToast();
+
+    const rentsQuery = useMemoFirebase(() => {
+        if (!userId || !firestore) return null;
+        return query(collection(firestore, `users/${userId}/properties/${propertyId}/rents`), orderBy('date', 'desc'));
+    }, [userId, firestore, propertyId]);
+    
+    const { data: rents } = useCollection<PropertyRent>(rentsQuery);
+
+    const handleDeleteRent = (rentId: string) => {
+        if (!firestore) return;
+        const rentDoc = doc(firestore, `users/${userId}/properties/${propertyId}/rents/${rentId}`);
+
+        deleteDoc(rentDoc)
+          .then(() => {
+            toast({ title: "Sucesso!", description: "Registro de aluguel excluído." });
+          })
+          .catch((serverError) => {
+            const permissionError = new FirestorePermissionError({
+                path: rentDoc.path,
+                operation: 'delete',
+            });
+            errorEmitter.emit('permission-error', permissionError);
+          });
+    };
+
+    return (
+        <div>
+            <div className="flex justify-between items-center mb-2">
+                <h4 className="font-semibold">Aluguéis Recebidos</h4>
+                <PropertyRentForm userId={userId} propertyId={propertyId} />
+            </div>
+             {rents && rents.length > 0 ? (
+                <ul className="space-y-2">
+                {rents.map((rent) => (
+                    <li key={rent.id} className="flex justify-between items-center bg-muted/50 p-2 rounded-md">
+                        <div>
+                            <p className="text-sm font-medium">{rent.details || 'Aluguel'}</p>
+                            <p className="text-xs text-muted-foreground">{format(new Date(rent.date), 'dd/MM/yyyy')}</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <p className="text-sm text-green-500">{rent.amount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
+                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleDeleteRent(rent.id)}>
+                                <Trash2 className="h-3 w-3" />
+                            </Button>
+                        </div>
+                    </li>
+                ))}
+                </ul>
+            ) : (
+                <p className="text-sm text-muted-foreground text-center py-4">Nenhum aluguel cadastrado.</p>
+            )}
+        </div>
+    )
+}
+
 
 export function PropertyList({ properties, userId }: PropertyListProps) {
   const firestore = useFirestore();
@@ -139,7 +200,12 @@ export function PropertyList({ properties, userId }: PropertyListProps) {
                         <MapPin className="h-3 w-3"/> {property.address}
                     </CardDescription>
                 </div>
-                <Badge variant={property.status === 'Alugado' ? 'default' : 'secondary'}>
+                <Badge 
+                  className={cn(
+                    property.status === 'Alugado' ? 'bg-green-100 text-green-800 border-green-200' : 'bg-red-100 text-red-800 border-red-200'
+                  )}
+                  variant={'outline'}
+                >
                     {property.status}
                 </Badge>
             </div>
@@ -155,11 +221,17 @@ export function PropertyList({ properties, userId }: PropertyListProps) {
                     <p className="font-medium text-red-500">- {(property.grossRent * property.adminFee / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
                 </div>
                 <div className="space-y-1 col-span-2">
-                    <p className="text-muted-foreground">Aluguel Líquido</p>
+                    <p className="text-muted-foreground">Aluguel Líquido Base</p>
                     <p className="font-semibold text-lg text-green-600">{property.netRent.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
                 </div>
             </div>
-            <Accordion type="single" collapsible>
+            <Accordion type="single" collapsible className="w-full">
+                <AccordionItem value="rents">
+                    <AccordionTrigger>Ver Aluguéis</AccordionTrigger>
+                    <AccordionContent>
+                        <PropertyRents propertyId={property.id} userId={userId} />
+                    </AccordionContent>
+                </AccordionItem>
                 <AccordionItem value="expenses">
                     <AccordionTrigger>Ver Despesas</AccordionTrigger>
                     <AccordionContent>

@@ -7,6 +7,7 @@ import type { Property } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { PropertyForm } from '@/components/properties/property-form';
 import { PropertyList } from '@/components/properties/property-list';
+import { useMemo } from 'react';
 
 export default function PropertiesPage() {
   const { user } = useUser();
@@ -18,6 +19,11 @@ export default function PropertiesPage() {
   }, [user, firestore]);
 
   const { data: properties, isLoading } = useCollection<Property>(propertiesQuery);
+
+  const sortedProperties = useMemo(() => {
+    if (!properties) return [];
+    return [...properties].sort((a, b) => a.name.localeCompare(b.name));
+  }, [properties]);
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -36,7 +42,7 @@ export default function PropertiesPage() {
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
           ) : (
-            <PropertyList properties={properties || []} userId={user?.uid || ''} />
+            <PropertyList properties={sortedProperties || []} userId={user?.uid || ''} />
           )}
         </div>
       </main>

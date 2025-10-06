@@ -60,3 +60,10 @@ export type Transaction = {
     amount: number;
   };
   
+  export type PropertyRent = {
+    id: string;
+    propertyId: string;
+    date: string;
+    amount: number;
+    details?: string;
+  };
