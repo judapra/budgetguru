@@ -29,7 +29,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Loader2, PlusCircle } from 'lucide-react';
+import { Loader2, PlusCircle, Pencil } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { Category, Expense } from '@/lib/types';
 import { errorEmitter } from '@/firebase/error-emitter';
