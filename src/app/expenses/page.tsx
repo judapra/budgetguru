@@ -1,13 +1,11 @@
 'use client';
-import { useMemo } from 'react';
 import { AppHeader } from "@/components/app-header";
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, where, orderBy } from 'firebase/firestore';
-import { Loader2, PlusCircle } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { ExpenseForm } from '@/components/expenses/expense-form';
 import { ExpensesTable } from '@/components/expenses/expenses-table';
 import type { Category, Expense } from '@/lib/types';
-import { Button } from '@/components/ui/button';
 
 export default function ExpensesPage() {
   const { user } = useUser();
@@ -39,12 +37,7 @@ export default function ExpensesPage() {
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-2xl font-bold font-headline">Despesas</h1>
             {user && firestore && (
-                <ExpenseForm categories={categories || []} userId={user.uid}>
-                    <Button className="font-headline">
-                        <PlusCircle className="mr-2 h-4 w-4" />
-                        Nova Despesa
-                    </Button>
-                </ExpenseForm>
+                <ExpenseForm categories={categories || []} userId={user.uid} />
             )}
           </div>
 

@@ -29,12 +29,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Loader2 } from 'lucide-react';
+import { Loader2, PlusCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { Category, Expense } from '@/lib/types';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { InputDatePicker } from '../ui/input-date-picker';
+import { cn } from '@/lib/utils';
 
 const formSchema = z.object({
   amount: z.coerce.number().min(0.01, 'O valor deve ser maior que zero.'),
@@ -48,10 +49,12 @@ type ExpenseFormProps = {
   categories: Category[];
   userId: string;
   expense?: Expense;
-  children: React.ReactNode;
+  variant?: 'default' | 'outline';
+  className?: string;
+  children?: React.ReactNode;
 };
 
-export function ExpenseForm({ categories, userId, expense, children }: ExpenseFormProps) {
+export function ExpenseForm({ categories, userId, expense, variant = 'default', className, children }: ExpenseFormProps) {
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const firestore = useFirestore();
@@ -141,10 +144,19 @@ export function ExpenseForm({ categories, userId, expense, children }: ExpenseFo
     }
   }
 
+  const triggerButton = children ? (
+    <div className={className}>{children}</div>
+  ) : (
+    <Button className={cn("font-headline", className)} variant={variant}>
+      <PlusCircle className="mr-2 h-4 w-4" />
+      Nova Despesa
+    </Button>
+  );
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        {children}
+        {triggerButton}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>

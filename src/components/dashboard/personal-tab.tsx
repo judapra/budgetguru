@@ -1,14 +1,11 @@
-
-// Deploy final da vitória v1
 'use client';
 import { useMemo } from 'react';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, orderBy, where } from 'firebase/firestore';
 import { OverviewChart } from "./overview-chart";
 import { RecentTransactions } from "./recent-transactions";
-import { Loader2, PlusCircle } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import type { Income, Expense, Transaction, Category } from '@/lib/types';
-import { Button } from '../ui/button';
 import { IncomeForm } from '../incomes/income-form';
 import { ExpenseForm } from '../expenses/expense-form';
 
@@ -131,21 +128,11 @@ export function PersonalTab() {
     }
 
     const actions = () => {
-        if (!user) return null;
+        if (!user || !incomeCategories || !expenseCategories) return null;
         return (
             <div className="flex items-center gap-2">
-                <IncomeForm categories={incomeCategories || []} userId={user.uid}>
-                    <Button size="sm" className="font-headline">
-                        <PlusCircle className="mr-2 h-4 w-4" />
-                        Nova Receita
-                    </Button>
-                </IncomeForm>
-                <ExpenseForm categories={expenseCategories || []} userId={user.uid}>
-                    <Button size="sm" variant="outline" className="font-headline">
-                        <PlusCircle className="mr-2 h-4 w-4" />
-                        Nova Despesa
-                    </Button>
-                </ExpenseForm>
+                <IncomeForm categories={incomeCategories} userId={user.uid} className="text-sm" />
+                <ExpenseForm categories={expenseCategories} userId={user.uid} variant="outline" className="text-sm" />
             </div>
         );
     };

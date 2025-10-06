@@ -1,12 +1,10 @@
 'use client';
-import { useMemo } from 'react';
 import { AppHeader } from "@/components/app-header";
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, where, orderBy } from 'firebase/firestore';
-import { Loader2, PlusCircle } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { IncomeForm } from '@/components/business/incomes/income-form';
 import { IncomesTable } from '@/components/business/incomes/incomes-table';
-import { Button } from '@/components/ui/button';
 import type { Category, Income } from '@/lib/types';
 
 export default function BusinessIncomesPage() {
@@ -39,12 +37,7 @@ export default function BusinessIncomesPage() {
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-2xl font-bold font-headline">Receitas de Negócios</h1>
             {user && firestore && (
-              <IncomeForm categories={categories || []} userId={user.uid}>
-                <Button className="font-headline">
-                  <PlusCircle className="mr-2 h-4 w-4" />
-                  Nova Receita
-                </Button>
-              </IncomeForm>
+              <IncomeForm categories={categories || []} userId={user.uid} />
             )}
           </div>
 

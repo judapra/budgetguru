@@ -1,11 +1,10 @@
-
 'use client';
 import { useMemo } from 'react';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, orderBy, where } from 'firebase/firestore';
 import { OverviewChart } from "./overview-chart";
 import { RecentTransactions } from "./recent-transactions";
-import { Loader2, PlusCircle } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import type { Income, Expense, Category, Transaction } from '@/lib/types';
 import Link from 'next/link';
 import { Button } from '../ui/button';
@@ -133,22 +132,15 @@ export function BusinessTab() {
     
     const hasData = incomes && expenses && (incomes.length > 0 || expenses.length > 0);
 
-    const actions = () => user && (
-        <div className="flex items-center gap-2">
-            <IncomeForm categories={incomeCategories || []} userId={user.uid}>
-                <Button size="sm" className="font-headline">
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    Nova Receita
-                </Button>
-            </IncomeForm>
-            <ExpenseForm categories={expenseCategories || []} userId={user.uid}>
-                <Button size="sm" variant="outline" className="font-headline">
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    Nova Despesa
-                </Button>
-            </ExpenseForm>
-        </div>
-    );
+    const actions = () => {
+        if (!user || !incomeCategories || !expenseCategories) return null;
+        return (
+            <div className="flex items-center gap-2">
+                <IncomeForm categories={incomeCategories} userId={user.uid} className="text-sm" />
+                <ExpenseForm categories={expenseCategories} userId={user.uid} variant="outline" className="text-sm" />
+            </div>
+        );
+    }
 
     if (!hasData) {
         return (
