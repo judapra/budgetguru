@@ -2,7 +2,7 @@
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection } from 'firebase/firestore';
 import { AppHeader } from "@/components/app-header";
-import { Loader2, PlusCircle } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { CategoryForm } from '@/components/categories/category-form';
 import { CategoriesList } from '@/components/categories/categories-list';
 import type { Category } from '@/lib/types';
@@ -30,12 +30,7 @@ export default function CategoriesPage() {
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-2xl font-bold font-headline">Categorias</h1>
             {user && (
-              <CategoryForm userId={user.uid}>
-                <Button className="font-headline">
-                  <PlusCircle className="mr-2 h-4 w-4" />
-                  Nova Categoria
-                </Button>
-              </CategoryForm>
+              <CategoryForm userId={user.uid} />
             )}
           </div>
 

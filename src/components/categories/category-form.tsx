@@ -23,7 +23,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Loader2 } from 'lucide-react';
+import { Loader2, PlusCircle, Pencil } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
@@ -39,10 +39,9 @@ const formSchema = z.object({
 type CategoryFormProps = {
   userId: string;
   category?: Category;
-  children: React.ReactNode;
 };
 
-export function CategoryForm({ userId, category, children }: CategoryFormProps) {
+export function CategoryForm({ userId, category }: CategoryFormProps) {
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const firestore = useFirestore();
@@ -69,7 +68,7 @@ export function CategoryForm({ userId, category, children }: CategoryFormProps) 
             type: 'Expense',
         });
     }
-  }, [category, form]);
+  }, [category, form, open]);
 
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
@@ -128,7 +127,16 @@ export function CategoryForm({ userId, category, children }: CategoryFormProps) 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        {children}
+        {isEditing ? (
+            <Button variant="ghost" size="icon" className="h-5 w-5 ml-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <Pencil className="h-3 w-3" />
+            </Button>
+        ) : (
+            <Button className="font-headline">
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Nova Categoria
+            </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
