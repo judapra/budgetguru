@@ -69,9 +69,10 @@
         "address": { "type": "string", "description": "The address of the property." },
         "grossRent": { "type": "number", "description": "The gross rent of the property." },
         "netRent": { "type": "number", "description": "The net rent of the property." },
-        "adminFee": { "type": "number", "description": "The administration fee for the property." }
+        "adminFee": { "type": "number", "description": "The administration fee for the property in percentage." },
+        "status": { "type": "string", "description": "The status of the property (e.g. Rented, Vacant).", "enum": ["Alugado", "Vazio"] }
       },
-      "required": ["id", "userId", "name", "address", "grossRent", "netRent", "adminFee"]
+      "required": ["id", "userId", "name", "address", "grossRent", "netRent", "adminFee", "status"]
     },
     "PropertyExpense": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -82,7 +83,7 @@
         "id": { "type": "string", "description": "Unique identifier for the PropertyExpense entity." },
         "propertyId": { "type": "string", "description": "Reference to Property. (Relationship: Property 1:N PropertyExpense)" },
         "date": { "type": "string", "description": "The date of the expense.", "format": "date-time" },
-        "description": { "type": "string", "description": "Description of the expense." },
+        "description": { "type": "string", "description": "Description of the expense (e.g., IPTU, Condominium)." },
         "amount": { "type": "number", "description": "The amount of the expense." }
       },
       "required": ["id", "propertyId", "date", "description", "amount"]

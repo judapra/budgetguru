@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { Expense, Category } from '@/lib/types';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
-import { Trash2, Pencil } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 import { useFirestore } from '@/firebase';
 import { deleteDoc, doc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
@@ -90,11 +90,7 @@ export function ExpensesTable({ expenses, categories }: ExpensesTableProps) {
                   - {expense.amount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                 </TableCell>
                 <TableCell className='flex'>
-                    <ExpenseForm userId={expense.userId} expense={expense} categories={categories}>
-                        <Button variant="ghost" size="icon">
-                            <Pencil className="h-4 w-4" />
-                        </Button>
-                    </ExpenseForm>
+                    <ExpenseForm userId={expense.userId} expense={expense} categories={categories} />
                   <Button 
                     variant="ghost" 
                     size="icon" 

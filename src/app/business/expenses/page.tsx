@@ -2,10 +2,11 @@
 import { AppHeader } from "@/components/app-header";
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, where, orderBy } from 'firebase/firestore';
-import { Loader2 } from 'lucide-react';
+import { Loader2, PlusCircle } from 'lucide-react';
 import { ExpenseForm } from '@/components/business/expenses/expense-form';
 import { ExpensesTable } from '@/components/business/expenses/expenses-table';
 import type { Category, Expense } from '@/lib/types';
+import { Button } from "@/components/ui/button";
 
 export default function BusinessExpensesPage() {
   const { user } = useUser();
@@ -29,15 +30,6 @@ export default function BusinessExpensesPage() {
 
   const isLoading = isLoadingCategories || isLoadingExpenses;
 
-  const renderAddExpenseButton = () => {
-    if (user && firestore && categories) {
-      return (
-        <ExpenseForm categories={categories} userId={user.uid} />
-      );
-    }
-    return null;
-  }
-
   return (
     <div className="flex flex-col min-h-screen">
       <AppHeader />
@@ -45,7 +37,9 @@ export default function BusinessExpensesPage() {
         <div className="max-w-4xl mx-auto">
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-2xl font-bold font-headline">Despesas de Negócios</h1>
-            {renderAddExpenseButton()}
+            {user && firestore && categories && (
+                <ExpenseForm categories={categories} userId={user.uid} />
+            )}
           </div>
 
           {isLoading ? (

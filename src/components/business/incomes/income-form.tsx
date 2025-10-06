@@ -29,7 +29,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Loader2, PlusCircle } from 'lucide-react';
+import { Loader2, PlusCircle, Pencil } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { Category, Income } from '@/lib/types';
 import { errorEmitter } from '@/firebase/error-emitter';
@@ -51,10 +51,9 @@ type IncomeFormProps = {
   income?: Income;
   variant?: 'default' | 'outline';
   className?: string;
-  children?: React.ReactNode;
 };
 
-export function IncomeForm({ categories, userId, income, variant = 'default', className, children }: IncomeFormProps) {
+export function IncomeForm({ categories, userId, income, variant = 'default', className }: IncomeFormProps) {
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const firestore = useFirestore();
@@ -88,7 +87,7 @@ export function IncomeForm({ categories, userId, income, variant = 'default', cl
             date: undefined,
         });
     }
-  }, [income, isEditing, form]);
+  }, [income, isEditing, form, open]);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (!firestore) return;
@@ -144,20 +143,20 @@ export function IncomeForm({ categories, userId, income, variant = 'default', cl
       setIsSubmitting(false);
     }
   }
-  
-  const triggerButton = children ? (
-    <div className={className}>{children}</div>
-    ) : (
-    <Button className={cn("font-headline", className)} variant={variant}>
-      <PlusCircle className="mr-2 h-4 w-4" />
-      Nova Receita
-    </Button>
-  );
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        {triggerButton}
+        {isEditing ? (
+            <Button variant="ghost" size="icon">
+                <Pencil className="h-4 w-4" />
+            </Button>
+        ) : (
+            <Button className={cn("font-headline", className)} variant={variant}>
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Nova Receita
+            </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>

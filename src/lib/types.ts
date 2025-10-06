@@ -49,6 +49,7 @@ export type Transaction = {
     grossRent: number;
     netRent: number;
     adminFee: number;
+    status: 'Alugado' | 'Vazio';
   };
   
   export type PropertyExpense = {

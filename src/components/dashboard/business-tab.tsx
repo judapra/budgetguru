@@ -132,7 +132,7 @@ export function BusinessTab() {
     
     const hasData = incomes && expenses && (incomes.length > 0 || expenses.length > 0);
 
-    const actions = () => {
+    const renderActions = () => {
         if (!user || !incomeCategories || !expenseCategories) return null;
         return (
             <div className="flex items-center gap-2">
@@ -172,7 +172,7 @@ export function BusinessTab() {
                     data={chartData}
                     title="Visão Geral de Negócios"
                     description="Suas receitas e despesas de negócio nos últimos meses."
-                    actions={actions}
+                    actions={renderActions}
                 />
             </div>
             <div className="col-span-1">

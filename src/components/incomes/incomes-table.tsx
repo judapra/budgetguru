@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { Income, Category } from '@/lib/types';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
-import { Trash2, Pencil } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 import { useFirestore } from '@/firebase';
 import { deleteDoc, doc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
@@ -91,11 +91,7 @@ export function IncomesTable({ incomes, categories }: IncomesTableProps) {
                   {income.amount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                 </TableCell>
                 <TableCell className='flex'>
-                  <IncomeForm userId={income.userId} income={income} categories={categories}>
-                    <Button variant="ghost" size="icon">
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                  </IncomeForm>
+                  <IncomeForm userId={income.userId} income={income} categories={categories} />
                   <Button 
                     variant="ghost" 
                     size="icon" 

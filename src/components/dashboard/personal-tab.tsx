@@ -127,7 +127,7 @@ export function PersonalTab() {
         );
     }
 
-    const actions = () => {
+    const renderActions = () => {
         if (!user || !incomeCategories || !expenseCategories) return null;
         return (
             <div className="flex items-center gap-2">
@@ -144,7 +144,7 @@ export function PersonalTab() {
                     data={chartData}
                     title="Visão Geral Financeira Pessoal"
                     description="Suas receitas e despesas nos últimos meses."
-                    actions={actions}
+                    actions={renderActions}
                 />
             </div>
             <div className="col-span-1">

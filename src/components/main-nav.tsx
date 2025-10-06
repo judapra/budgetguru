@@ -13,7 +13,7 @@ import {
   navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu"
 import React from "react"
-import { Briefcase, CircleDollarSign } from "lucide-react"
+import { Briefcase, CircleDollarSign, Landmark } from "lucide-react"
 
 export function MainNav({
   className,
@@ -79,6 +79,15 @@ export function MainNav({
             </ul>
           </NavigationMenuContent>
         </NavigationMenuItem>
+
+        <NavigationMenuItem>
+          <Link href="/properties" legacyBehavior passHref>
+            <NavigationMenuLink active={pathname.startsWith('/properties')} className={navigationMenuTriggerStyle()}>
+                <Landmark className="mr-2 h-4 w-4" /> Imóveis
+            </NavigationMenuLink>
+          </Link>
+        </NavigationMenuItem>
+
       </NavigationMenuList>
     </NavigationMenu>
   )

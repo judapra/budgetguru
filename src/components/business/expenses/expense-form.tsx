@@ -51,10 +51,9 @@ type ExpenseFormProps = {
   expense?: Expense;
   variant?: 'default' | 'outline';
   className?: string;
-  children?: React.ReactNode;
 };
 
-export function ExpenseForm({ categories, userId, expense, variant = 'default', className, children }: ExpenseFormProps) {
+export function ExpenseForm({ categories, userId, expense, variant = 'default', className }: ExpenseFormProps) {
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const firestore = useFirestore();
@@ -88,7 +87,7 @@ export function ExpenseForm({ categories, userId, expense, variant = 'default', 
             date: undefined,
         });
     }
-  }, [expense, isEditing, form]);
+  }, [expense, isEditing, form, open]);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (!firestore) return;
@@ -144,19 +143,19 @@ export function ExpenseForm({ categories, userId, expense, variant = 'default', 
     }
   }
 
-  const triggerButton = children ? (
-    <div className={className}>{children}</div>
-  ) : (
-    <Button className={cn("font-headline", className)} variant={variant}>
-      <PlusCircle className="mr-2 h-4 w-4" />
-      Nova Despesa
-    </Button>
-  );
-
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        {triggerButton}
+        {isEditing ? (
+             <Button variant="ghost" size="icon">
+                <Pencil className="h-4 w-4" />
+            </Button>
+        ) : (
+            <Button className={cn("font-headline", className)} variant={variant}>
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Nova Despesa
+            </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
