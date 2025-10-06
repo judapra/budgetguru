@@ -1,3 +1,5 @@
+// Forçando re-build v-final
+
 "use client";
 
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, XAxis, YAxis } from "recharts";
@@ -20,7 +22,7 @@ type OverviewChartProps = {
     data: any[];
     title: string;
     description: string;
-    actions?: React.ReactNode;
+    actions?: () => React.ReactNode;
 }
 
 export function OverviewChart({ data, title, description, actions }: OverviewChartProps) {
@@ -39,11 +41,11 @@ export function OverviewChart({ data, title, description, actions }: OverviewCha
     <Card>
       <CardHeader>
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
-            <div className="flex-1">
-                <CardTitle className="font-headline">{title}</CardTitle>
-                <CardDescription>{description}</CardDescription>
-            </div>
-            {actions}
+          <div className="flex-1">
+            <CardTitle className="font-headline">{title}</CardTitle>
+            <CardDescription>{description}</CardDescription>
+          </div>
+          {actions && actions()}
         </div>
       </CardHeader>
       <CardContent>

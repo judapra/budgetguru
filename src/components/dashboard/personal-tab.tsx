@@ -128,7 +128,7 @@ export function PersonalTab() {
         );
     }
 
-    const actions = user && (
+    const actions = () => user && (
         <div className="flex items-center gap-2">
             <IncomeForm categories={incomeCategories || []} userId={user.uid}>
                 <Button size="sm" className="font-headline">

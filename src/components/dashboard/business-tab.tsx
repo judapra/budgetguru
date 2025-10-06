@@ -1,3 +1,5 @@
+// Forçando re-build v-final
+
 'use client';
 import { useMemo } from 'react';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
@@ -132,7 +134,7 @@ export function BusinessTab() {
     
     const hasData = incomes && expenses && (incomes.length > 0 || expenses.length > 0);
 
-    const actions = user && (
+    const actions = () => user && (
         <div className="flex items-center gap-2">
             <IncomeForm categories={incomeCategories || []} userId={user.uid}>
                 <Button size="sm" className="font-headline">

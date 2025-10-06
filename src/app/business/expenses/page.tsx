@@ -31,6 +31,20 @@ export default function BusinessExpensesPage() {
 
   const isLoading = isLoadingCategories || isLoadingExpenses;
 
+  const renderAddExpenseButton = () => {
+    if (user && firestore) {
+      return (
+        <ExpenseForm categories={categories || []} userId={user.uid}>
+          <Button className="font-headline">
+            <PlusCircle className="mr-2 h-4 w-4" />
+            Nova Despesa
+          </Button>
+        </ExpenseForm>
+      );
+    }
+    return null;
+  }
+
   return (
     <div className="flex flex-col min-h-screen">
       <AppHeader />
@@ -38,14 +52,7 @@ export default function BusinessExpensesPage() {
         <div className="max-w-4xl mx-auto">
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-2xl font-bold font-headline">Despesas de Negócios</h1>
-            {user && firestore && (
-                <ExpenseForm categories={categories || []} userId={user.uid}>
-                    <Button className="font-headline">
-                        <PlusCircle className="mr-2 h-4 w-4" />
-                        Nova Despesa
-                    </Button>
-                </ExpenseForm>
-            )}
+            {renderAddExpenseButton()}
           </div>
 
           {isLoading ? (
