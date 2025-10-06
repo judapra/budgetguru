@@ -1,3 +1,4 @@
+
 // Deploy final da vitória v1
 'use client';
 import { useMemo } from 'react';
@@ -129,22 +130,25 @@ export function PersonalTab() {
         );
     }
 
-    const actions = () => user && (
-        <div className="flex items-center gap-2">
-            <IncomeForm categories={incomeCategories || []} userId={user.uid}>
-                <Button size="sm" className="font-headline">
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    Nova Receita
-                </Button>
-            </IncomeForm>
-            <ExpenseForm categories={expenseCategories || []} userId={user.uid}>
-                <Button size="sm" variant="outline" className="font-headline">
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    Nova Despesa
-                </Button>
-            </ExpenseForm>
-        </div>
-    );
+    const actions = () => {
+        if (!user) return null;
+        return (
+            <div className="flex items-center gap-2">
+                <IncomeForm categories={incomeCategories || []} userId={user.uid}>
+                    <Button size="sm" className="font-headline">
+                        <PlusCircle className="mr-2 h-4 w-4" />
+                        Nova Receita
+                    </Button>
+                </IncomeForm>
+                <ExpenseForm categories={expenseCategories || []} userId={user.uid}>
+                    <Button size="sm" variant="outline" className="font-headline">
+                        <PlusCircle className="mr-2 h-4 w-4" />
+                        Nova Despesa
+                    </Button>
+                </ExpenseForm>
+            </div>
+        );
+    };
 
     return (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

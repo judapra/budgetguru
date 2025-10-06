@@ -33,10 +33,9 @@ export default function BusinessExpensesPage() {
   const isLoading = isLoadingCategories || isLoadingExpenses;
 
   const renderAddExpenseButton = () => {
-    if (user && firestore) {
-      // Passando as categorias para o ExpenseForm
+    if (user && firestore && categories) {
       return (
-        <ExpenseForm categories={categories || []} userId={user.uid}>
+        <ExpenseForm categories={categories} userId={user.uid}>
           <Button className="font-headline">
             <PlusCircle className="mr-2 h-4 w-4" />
             Nova Despesa
