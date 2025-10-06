@@ -1,4 +1,3 @@
-// Forçando re-build v-final
 
 'use client';
 import { useMemo } from 'react';

@@ -1,3 +1,4 @@
+
 'use client';
 import { useMemo } from 'react';
 import { AppHeader } from "@/components/app-header";
@@ -33,6 +34,7 @@ export default function BusinessExpensesPage() {
 
   const renderAddExpenseButton = () => {
     if (user && firestore) {
+      // Passando as categorias para o ExpenseForm
       return (
         <ExpenseForm categories={categories || []} userId={user.uid}>
           <Button className="font-headline">

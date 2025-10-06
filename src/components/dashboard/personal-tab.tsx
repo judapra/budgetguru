@@ -1,3 +1,4 @@
+// Deploy final da vitória v1
 'use client';
 import { useMemo } from 'react';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
