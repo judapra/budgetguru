@@ -12,6 +12,18 @@
       },
       "required": ["id", "email", "name"]
     },
+    "Company": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Company",
+      "type": "object",
+      "description": "Represents a user's company.",
+      "properties": {
+        "id": { "type": "string", "description": "Unique identifier for the Company entity." },
+        "userId": { "type": "string", "description": "Reference to User. (Relationship: User 1:1 Company)" },
+        "name": { "type": "string", "description": "The name of the company." }
+      },
+      "required": ["id", "userId", "name"]
+    },
     "Expense": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Expense",
@@ -121,6 +133,15 @@
         }
       },
       {
+        "path": "/users/{userId}/company/{companyId}",
+        "schema": { "$ref": "#/entities/Company" },
+        "description": "Stores user's company information.",
+        "permissions": {
+          "read": "request.auth.uid == userId",
+          "write": "request.auth.uid == userId"
+        }
+      },
+      {
         "path": "/users/{userId}/categories/{categoryId}",
         "schema": { "$ref": "#/entities/Category" },
         "description": "Stores personal categories.",
@@ -151,9 +172,9 @@
         }
       },
       {
-        "path": "/users/{userId}/business_categories/{categoryId}",
+        "path": "/users/{userId}/company_categories/{categoryId}",
         "schema": { "$ref": "#/entities/Category" },
-        "description": "Stores business categories.",
+        "description": "Stores company categories.",
         "permissions": {
           "list": "request.auth.uid == userId",
           "read": "request.auth.uid == userId",
@@ -161,9 +182,9 @@
         }
       },
       {
-        "path": "/users/{userId}/business_expenses/{expenseId}",
+        "path": "/users/{userId}/company_expenses/{expenseId}",
         "schema": { "$ref": "#/entities/Expense" },
-        "description": "Stores business expense records.",
+        "description": "Stores company expense records.",
         "permissions": {
           "list": "request.auth.uid == userId",
           "read": "request.auth.uid == userId",
@@ -171,9 +192,9 @@
         }
       },
       {
-        "path": "/users/{userId}/business_incomes/{incomeId}",
+        "path": "/users/{userId}/company_incomes/{incomeId}",
         "schema": { "$ref": "#/entities/Income" },
-        "description": "Stores business income records.",
+        "description": "Stores company income records.",
         "permissions": {
           "list": "request.auth.uid == userId",
           "read": "request.auth.uid == userId",
