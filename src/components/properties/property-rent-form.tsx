@@ -53,10 +53,12 @@ export function PropertyRentForm({ userId, propertyId, rent, baseRentAmount }: P
   const { toast } = useToast();
   const isEditing = !!rent;
 
+  const getRoundedValue = (value?: number) => value ? parseFloat(value.toFixed(2)) : 0;
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      amount: baseRentAmount || 0,
+      amount: getRoundedValue(baseRentAmount),
       details: '',
       account: '',
       discounts: 0,
@@ -76,7 +78,7 @@ export function PropertyRentForm({ userId, propertyId, rent, baseRentAmount }: P
       });
     } else {
       form.reset({
-        amount: baseRentAmount || 0,
+        amount: getRoundedValue(baseRentAmount),
         details: '',
         date: new Date(),
         account: '',
@@ -156,7 +158,7 @@ export function PropertyRentForm({ userId, propertyId, rent, baseRentAmount }: P
                         <FormItem>
                         <FormLabel>Valor Recebido</FormLabel>
                         <FormControl>
-                            <Input type="number" placeholder="R$ 0,00" {...field} />
+                            <Input type="number" placeholder="R$ 0,00" {...field} step="0.01" />
                         </FormControl>
                         <FormMessage />
                         </FormItem>
@@ -197,7 +199,7 @@ export function PropertyRentForm({ userId, propertyId, rent, baseRentAmount }: P
                         <FormItem>
                         <FormLabel>Descontos (R$)</FormLabel>
                         <FormControl>
-                            <Input type="number" placeholder="0,00" {...field} />
+                            <Input type="number" placeholder="0,00" {...field} step="0.01" />
                         </FormControl>
                         <FormMessage />
                         </FormItem>
@@ -210,7 +212,7 @@ export function PropertyRentForm({ userId, propertyId, rent, baseRentAmount }: P
                         <FormItem>
                         <FormLabel>Acréscimos (R$)</FormLabel>
                         <FormControl>
-                            <Input type="number" placeholder="0,00" {...field} />
+                            <Input type="number" placeholder="0,00" {...field} step="0.01" />
                         </FormControl>
                         <FormMessage />
                         </FormItem>
