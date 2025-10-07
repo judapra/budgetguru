@@ -67,7 +67,7 @@ export function IncomesTable({ incomes, categories }: IncomesTableProps) {
     <Card>
        <CardHeader>
           <CardTitle className="font-headline">Receitas Cadastradas</CardTitle>
-        </Header>
+        </CardHeader>
       <CardContent>
         <Table>
           <TableHeader>
