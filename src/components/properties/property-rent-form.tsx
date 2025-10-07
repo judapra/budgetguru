@@ -34,6 +34,9 @@ const formSchema = z.object({
   amount: z.coerce.number().min(0.01, 'O valor deve ser maior que zero.'),
   details: z.string().optional(),
   date: z.date({ required_error: 'A data é obrigatória.' }),
+  account: z.string().min(2, 'A conta é obrigatória.'),
+  discounts: z.coerce.number().optional(),
+  additions: z.coerce.number().optional(),
 });
 
 type PropertyRentFormProps = {
@@ -54,6 +57,9 @@ export function PropertyRentForm({ userId, propertyId, rent }: PropertyRentFormP
     defaultValues: {
       amount: 0,
       details: '',
+      account: '',
+      discounts: 0,
+      additions: 0,
     },
   });
 
@@ -63,12 +69,18 @@ export function PropertyRentForm({ userId, propertyId, rent }: PropertyRentFormP
         amount: rent.amount,
         details: rent.details,
         date: new Date(rent.date),
+        account: rent.account,
+        discounts: rent.discounts || 0,
+        additions: rent.additions || 0,
       });
     } else {
       form.reset({
         amount: 0,
         details: '',
         date: new Date(),
+        account: '',
+        discounts: 0,
+        additions: 0,
       });
     }
   }, [rent, isEditing, form, open]);
@@ -129,38 +141,81 @@ export function PropertyRentForm({ userId, propertyId, rent }: PropertyRentFormP
           Adicionar
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="font-headline">{isEditing ? 'Editar Aluguel' : 'Adicionar Aluguel'}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+                <FormField
+                    control={form.control}
+                    name="amount"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Valor Recebido</FormLabel>
+                        <FormControl>
+                            <Input type="number" placeholder="R$ 0,00" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+                <FormField
+                control={form.control}
+                name="date"
+                render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                    <FormLabel>Data do Pagamento</FormLabel>
+                    <FormControl>
+                        <InputDatePicker field={field} />
+                    </FormControl>
+                    <FormMessage />
+                    </FormItem>
+                )}
+                />
+            </div>
             <FormField
               control={form.control}
-              name="amount"
+              name="account"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Valor Recebido</FormLabel>
+                  <FormLabel>Conta para Depósito</FormLabel>
                   <FormControl>
-                    <Input type="number" placeholder="R$ 0,00" {...field} />
+                    <Input placeholder="Ex: Banco do Brasil, C/C 1234-5" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="date"
-              render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel>Data do Pagamento</FormLabel>
-                  <FormControl>
-                    <InputDatePicker field={field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="grid grid-cols-2 gap-4">
+                <FormField
+                    control={form.control}
+                    name="discounts"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Descontos (R$)</FormLabel>
+                        <FormControl>
+                            <Input type="number" placeholder="0,00" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+                <FormField
+                    control={form.control}
+                    name="additions"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Acréscimos (R$)</FormLabel>
+                        <FormControl>
+                            <Input type="number" placeholder="0,00" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+            </div>
             <FormField
               control={form.control}
               name="details"
@@ -168,7 +223,7 @@ export function PropertyRentForm({ userId, propertyId, rent }: PropertyRentFormP
                 <FormItem>
                   <FormLabel>Detalhes (Opcional)</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="Ex: Pagamento proporcional, acerto..." {...field} />
+                    <Textarea placeholder="Ex: Pagamento proporcional, acerto de contas..." {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

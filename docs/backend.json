@@ -110,9 +110,12 @@
         "propertyId": { "type": "string", "description": "Reference to Property. (Relationship: Property 1:N PropertyRent)" },
         "date": { "type": "string", "description": "The date the rent was received.", "format": "date-time" },
         "amount": { "type": "number", "description": "The amount of the rent received." },
-        "details": { "type": "string", "description": "Optional details about the rent payment." }
+        "details": { "type": "string", "description": "Optional details about the rent payment." },
+        "account": { "type": "string", "description": "The bank account where the rent was deposited." },
+        "discounts": { "type": "number", "description": "Any discounts applied to the rent payment." },
+        "additions": { "type": "number", "description": "Any additions or fees applied to the rent payment." }
       },
-      "required": ["id", "propertyId", "date", "amount"]
+      "required": ["id", "propertyId", "date", "amount", "account"]
     }
   },
   "auth": {
@@ -235,5 +238,3 @@
     "reasoning": "The Firestore structure is designed to ensure data isolation between users and efficient querying. Each user has their own dedicated space for personal and business finances (expenses, incomes, categories) and properties, enabling secure and scalable access control. This design leverages path-based ownership for private data. The design ensures Authorization Independence by avoiding `get()` calls in security rules, relying solely on `request.auth.uid` and the hierarchical path structure to validate ownership. Segregation is achieved as all documents within a user's collection share the same security posture. This makes securing `list` operations straightforward, ensuring that users can only access their own data (QAPs). The structure facilitates the integrity of ownership by associating each document with a specific `userId`. This explicit association, combined with Firestore security rules, guarantees that only authenticated users can access and manipulate their own data."
   }
 }
-
-    

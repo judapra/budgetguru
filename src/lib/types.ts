@@ -66,6 +66,9 @@ export type Transaction = {
     date: string;
     amount: number;
     details?: string;
+    account: string;
+    discounts?: number;
+    additions?: number;
   };
 
   export type Company = {
