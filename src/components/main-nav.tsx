@@ -27,10 +27,10 @@ export function MainNav({
     { href: '/categories', label: 'Categorias Pessoais' },
   ]
 
-  const businessRoutes = [
-    { href: '/business/expenses', label: 'Despesas de Negócios' },
-    { href: '/business/incomes', label: 'Receitas de Negócios' },
-    { href: '/business/categories', label: 'Categorias de Negócios' },
+  const companyRoutes = [
+    { href: '/company/expenses', label: 'Despesas da Empresa' },
+    { href: '/company/incomes', label: 'Receitas da Empresa' },
+    { href: '/company/categories', label: 'Categorias da Empresa' },
   ]
 
   return (
@@ -64,11 +64,11 @@ export function MainNav({
        
         <NavigationMenuItem>
           <NavigationMenuTrigger>
-            <Briefcase className="mr-2 h-4 w-4" /> Negócios
+            <Briefcase className="mr-2 h-4 w-4" /> Empresa
           </NavigationMenuTrigger>
           <NavigationMenuContent>
             <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px] ">
-              {businessRoutes.map((component) => (
+              {companyRoutes.map((component) => (
                 <ListItem
                   key={component.label}
                   title={component.label}

@@ -1,7 +1,7 @@
 'use client'
 
 import { useFormState } from 'react-dom';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import {
   Card,
@@ -15,15 +15,127 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { handleGenerateReport } from '@/lib/actions';
 import { SubmitButton } from './submit-button';
+import { RealEstateChart } from './real-estate-chart';
+import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { collection, query, getDocs } from 'firebase/firestore';
+import type { Property, PropertyRent, PropertyExpense } from '@/lib/types';
+import { Loader2 } from 'lucide-react';
 
 const initialState = {
   summary: null,
   error: null,
 };
 
+type MonthlyData = {
+  month: string;
+  rents: number;
+  expenses: number;
+  net: number;
+  percentageChange: number | null;
+}
+
+
+const groupRealEstateByMonth = (rents: PropertyRent[], expenses: PropertyExpense[]): MonthlyData[] => {
+    const monthlyData: { [key: string]: { month: string; rents: number; expenses: number } } = {};
+    const monthNames = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+
+    const currentYear = new Date().getFullYear();
+    for (let i = 0; i < 12; i++) {
+        const monthKey = `${currentYear}-${i}`;
+        monthlyData[monthKey] = { month: monthNames[i], rents: 0, expenses: 0 };
+    }
+
+    rents.forEach(rent => {
+        const date = new Date(rent.date);
+        if (date.getFullYear() === currentYear) {
+            const monthKey = `${date.getFullYear()}-${date.getMonth()}`;
+            if (monthlyData[monthKey]) {
+                monthlyData[monthKey].rents += rent.amount;
+            }
+        }
+    });
+
+    expenses.forEach(expense => {
+        const date = new Date(expense.date);
+        if (date.getFullYear() === currentYear) {
+            const monthKey = `${date.getFullYear()}-${date.getMonth()}`;
+            if (monthlyData[monthKey]) {
+                monthlyData[monthKey].expenses += expense.amount;
+            }
+        }
+    });
+
+    const result: MonthlyData[] = Object.values(monthlyData).map(data => ({
+        ...data,
+        net: data.rents - data.expenses,
+        percentageChange: null,
+    }));
+
+    for(let i = 1; i < result.length; i++) {
+        const prevNet = result[i-1].net;
+        const currentNet = result[i].net;
+
+        if (prevNet !== 0) {
+            result[i].percentageChange = ((currentNet - prevNet) / Math.abs(prevNet)) * 100;
+        } else if (currentNet > 0) {
+            result[i].percentageChange = 100;
+        } else {
+            result[i].percentageChange = 0;
+        }
+    }
+
+    return result;
+}
+
+
 export function RealEstateTab() {
   const { toast } = useToast();
   const [state, formAction] = useFormState(handleGenerateReport, initialState);
+
+  const { user } = useUser();
+  const firestore = useFirestore();
+
+  const [allRents, setAllRents] = React.useState<PropertyRent[]>([]);
+  const [allExpenses, setAllExpenses] = React.useState<PropertyExpense[]>([]);
+  const [isLoading, setIsLoading] = React.useState(true);
+
+  const propertiesQuery = useMemoFirebase(() => {
+    if (!user || !firestore) return null;
+    return collection(firestore, `users/${user.uid}/properties`);
+  }, [user, firestore]);
+
+  const { data: properties } = useCollection<Property>(propertiesQuery);
+
+  useEffect(() => {
+    const fetchAllData = async () => {
+        if (!properties || !firestore || !user) return;
+        
+        setIsLoading(true);
+        let rents: PropertyRent[] = [];
+        let expenses: PropertyExpense[] = [];
+
+        for (const prop of properties) {
+            const rentsQuery = query(collection(firestore, `users/${user.uid}/properties/${prop.id}/rents`));
+            const expensesQuery = query(collection(firestore, `users/${user.uid}/properties/${prop.id}/expenses`));
+
+            const rentSnap = await getDocs(rentsQuery);
+            rentSnap.forEach(doc => rents.push({ id: doc.id, ...doc.data() } as PropertyRent));
+
+            const expenseSnap = await getDocs(expensesQuery);
+            expenseSnap.forEach(doc => expenses.push({ id: doc.id, ...doc.data() } as PropertyExpense));
+        }
+
+        setAllRents(rents);
+        setAllExpenses(expenses);
+        setIsLoading(false);
+    }
+    fetchAllData();
+  }, [properties, firestore, user]);
+
+  const chartData = useMemo(() => {
+    return groupRealEstateByMonth(allRents, allExpenses);
+  }, [allRents, allExpenses]);
+
 
   useEffect(() => {
     if (state?.error) {
@@ -35,11 +147,22 @@ export function RealEstateTab() {
     }
   }, [state, toast]);
 
+  if (isLoading) {
+    return (
+        <div className="flex justify-center items-center h-64">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+    );
+  }
+
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-4xl mx-auto space-y-8">
+        {chartData && chartData.some(d => d.rents > 0 || d.expenses > 0) && (
+            <RealEstateChart data={chartData} />
+        )}
       <Card>
         <CardHeader>
-          <CardTitle className="font-headline">Análise de Portfólio Imobiliário</CardTitle>
+          <CardTitle className="font-headline">Análise de Portfólio Imobiliário com IA</CardTitle>
           <CardDescription>
             Insira os dados financeiros de seus imóveis para gerar um relatório com IA sobre despesas, receitas, patrimônio e ROI.
           </CardDescription>

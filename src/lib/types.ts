@@ -67,3 +67,9 @@ export type Transaction = {
     amount: number;
     details?: string;
   };
+
+  export type Company = {
+    id: string;
+    userId: string;
+    name: string;
+  }
