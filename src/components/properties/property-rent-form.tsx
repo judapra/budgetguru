@@ -43,9 +43,10 @@ type PropertyRentFormProps = {
   userId: string;
   propertyId: string;
   rent?: PropertyRent;
+  baseRentAmount?: number;
 };
 
-export function PropertyRentForm({ userId, propertyId, rent }: PropertyRentFormProps) {
+export function PropertyRentForm({ userId, propertyId, rent, baseRentAmount }: PropertyRentFormProps) {
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const firestore = useFirestore();
@@ -55,7 +56,7 @@ export function PropertyRentForm({ userId, propertyId, rent }: PropertyRentFormP
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      amount: 0,
+      amount: baseRentAmount || 0,
       details: '',
       account: '',
       discounts: 0,
@@ -75,7 +76,7 @@ export function PropertyRentForm({ userId, propertyId, rent }: PropertyRentFormP
       });
     } else {
       form.reset({
-        amount: 0,
+        amount: baseRentAmount || 0,
         details: '',
         date: new Date(),
         account: '',
@@ -83,7 +84,7 @@ export function PropertyRentForm({ userId, propertyId, rent }: PropertyRentFormP
         additions: 0,
       });
     }
-  }, [rent, isEditing, form, open]);
+  }, [rent, isEditing, form, open, baseRentAmount]);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (!firestore) return;

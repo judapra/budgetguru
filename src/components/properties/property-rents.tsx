@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Trash2, Banknote, Landmark } from 'lucide-react';
 
 
-export function PropertyRents({ propertyId, userId }: { propertyId: string, userId: string }) {
+export function PropertyRents({ propertyId, userId, baseRentAmount }: { propertyId: string, userId: string, baseRentAmount: number }) {
     const firestore = useFirestore();
     const { toast } = useToast();
 
@@ -48,7 +48,7 @@ export function PropertyRents({ propertyId, userId }: { propertyId: string, user
         <div>
             <div className="flex justify-between items-center mb-2">
                 <h4 className="font-semibold">Aluguéis Recebidos</h4>
-                <PropertyRentForm userId={userId} propertyId={propertyId} />
+                <PropertyRentForm userId={userId} propertyId={propertyId} baseRentAmount={baseRentAmount} />
             </div>
              {rents && rents.length > 0 ? (
                 <ul className="space-y-2">
