@@ -114,53 +114,105 @@
       {
         "path": "/users/{userId}",
         "schema": { "$ref": "#/entities/User" },
-        "description": "Stores user profile information."
+        "description": "Stores user profile information.",
+        "permissions": {
+          "read": "request.auth.uid == userId",
+          "write": "request.auth.uid == userId"
+        }
       },
       {
         "path": "/users/{userId}/categories/{categoryId}",
         "schema": { "$ref": "#/entities/Category" },
-        "description": "Stores personal categories."
+        "description": "Stores personal categories.",
+        "permissions": {
+          "list": "request.auth.uid == userId",
+          "read": "request.auth.uid == userId",
+          "write": "request.auth.uid == userId"
+        }
       },
       {
         "path": "/users/{userId}/expenses/{expenseId}",
         "schema": { "$ref": "#/entities/Expense" },
-        "description": "Stores personal expense records."
+        "description": "Stores personal expense records.",
+        "permissions": {
+          "list": "request.auth.uid == userId",
+          "read": "request.auth.uid == userId",
+          "write": "request.auth.uid == userId"
+        }
       },
       {
         "path": "/users/{userId}/incomes/{incomeId}",
         "schema": { "$ref": "#/entities/Income" },
-        "description": "Stores personal income records."
+        "description": "Stores personal income records.",
+        "permissions": {
+          "list": "request.auth.uid == userId",
+          "read": "request.auth.uid == userId",
+          "write": "request.auth.uid == userId"
+        }
       },
       {
         "path": "/users/{userId}/business_categories/{categoryId}",
         "schema": { "$ref": "#/entities/Category" },
-        "description": "Stores business categories."
+        "description": "Stores business categories.",
+        "permissions": {
+          "list": "request.auth.uid == userId",
+          "read": "request.auth.uid == userId",
+          "write": "request.auth.uid == userId"
+        }
       },
       {
         "path": "/users/{userId}/business_expenses/{expenseId}",
         "schema": { "$ref": "#/entities/Expense" },
-        "description": "Stores business expense records."
+        "description": "Stores business expense records.",
+        "permissions": {
+          "list": "request.auth.uid == userId",
+          "read": "request.auth.uid == userId",
+          "write": "request.auth.uid == userId"
+        }
       },
       {
         "path": "/users/{userId}/business_incomes/{incomeId}",
         "schema": { "$ref": "#/entities/Income" },
-        "description": "Stores business income records."
+        "description": "Stores business income records.",
+        "permissions": {
+          "list": "request.auth.uid == userId",
+          "read": "request.auth.uid == userId",
+          "write": "request.auth.uid == userId"
+        }
       },
       {
         "path": "/users/{userId}/properties/{propertyId}",
         "schema": { "$ref": "#/entities/Property" },
-        "description": "Stores properties managed by a user."
+        "description": "Stores properties managed by a user.",
+        "permissions": {
+          "list": "request.auth.uid == userId",
+          "read": "request.auth.uid == userId",
+          "write": "request.auth.uid == userId"
+        }
       },
       {
         "path": "/users/{userId}/properties/{propertyId}/expenses/{propertyExpenseId}",
         "schema": { "$ref": "#/entities/PropertyExpense" },
-        "description": "Stores expenses related to a specific property."
+        "description": "Stores expenses related to a specific property.",
+        "permissions": {
+          "list": "request.auth.uid == userId",
+          "read": "request.auth.uid == userId",
+          "write": "request.auth.uid == userId"
+        }
       },
       {
         "path": "/users/{userId}/properties/{propertyId}/rents/{rentId}",
         "schema": { "$ref": "#/entities/PropertyRent" },
-        "description": "Stores rent payments received for a specific property."
+        "description": "Stores rent payments received for a specific property.",
+        "permissions": {
+          "list": "request.auth.uid == userId",
+          "read": "request.auth.uid == userId",
+          "write": "request.auth.uid == userId"
+        }
       }
-    ]
+    ],
+    "reasoning": "The Firestore structure is designed to ensure data isolation between users and efficient querying. Each user has their own dedicated space for personal and business finances (expenses, incomes, categories) and properties, enabling secure and scalable access control. This design leverages path-based ownership for private data. The design ensures Authorization Independence by avoiding `get()` calls in security rules, relying solely on `request.auth.uid` and the hierarchical path structure to validate ownership. Segregation is achieved as all documents within a user's collection share the same security posture. This makes securing `list` operations straightforward, ensuring that users can only access their own data (QAPs). The structure facilitates the integrity of ownership by associating each document with a specific `userId`. This explicit association, combined with Firestore security rules, guarantees that only authenticated users can access and manipulate their own data."
   }
 }
+
+    
