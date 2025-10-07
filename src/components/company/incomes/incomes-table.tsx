@@ -67,7 +67,7 @@ export function IncomesTable({ incomes, categories }: IncomesTableProps) {
     <Card>
        <CardHeader>
           <CardTitle className="font-headline">Receitas Cadastradas</CardTitle>
-        </CardHeader>
+        </Header>
       <CardContent>
         <Table>
           <TableHeader>
@@ -91,14 +91,21 @@ export function IncomesTable({ incomes, categories }: IncomesTableProps) {
                   {income.amount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                 </TableCell>
                 <TableCell className='flex'>
-                  <IncomeForm userId={income.userId} income={income} categories={categories} />
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    onClick={() => handleDelete(income.id, income.userId)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                    {/* Disable editing/deleting for incomes linked to property rent */}
+                    {income.propertyRentId ? (
+                        <p className="text-xs text-muted-foreground italic">Via Imóvel</p>
+                    ) : (
+                        <>
+                            <IncomeForm userId={income.userId} income={income} categories={categories} />
+                            <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                onClick={() => handleDelete(income.id, income.userId)}
+                            >
+                                <Trash2 className="h-4 w-4" />
+                            </Button>
+                        </>
+                    )}
                 </TableCell>
               </TableRow>
             ))}

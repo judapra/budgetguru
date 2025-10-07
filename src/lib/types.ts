@@ -13,6 +13,8 @@ export type Category = {
       date: string;
       amount: number;
       details: string;
+      // Added to link income to a property rent
+      propertyRentId?: string;
   };
 
   export type Expense = {
@@ -42,7 +44,7 @@ export type Transaction = {
   };
 
   export type Property = {
-    id: string;
+    id:string;
     userId: string;
     name: string;
     address: string;
@@ -69,6 +71,7 @@ export type Transaction = {
     account: string;
     discounts?: number;
     additions?: number;
+    destination: 'Personal' | 'Company';
   };
 
   export type Company = {

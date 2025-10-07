@@ -3,8 +3,8 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useFirestore } from '@/firebase';
-import { addDoc, collection, doc, setDoc } from 'firebase/firestore';
+import { useFirestore, useUser } from '@/firebase';
+import { addDoc, collection, doc, setDoc, getDocs, query, where, writeBatch } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -29,27 +29,33 @@ import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { InputDatePicker } from '../ui/input-date-picker';
 import { Textarea } from '../ui/textarea';
+import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
+import { getOrCreateCategory } from '@/lib/category-actions';
 
 const formSchema = z.object({
   amount: z.coerce.number().min(0.01, 'O valor deve ser maior que zero.'),
   details: z.string().optional(),
   date: z.date({ required_error: 'A data é obrigatória.' }),
   account: z.string().min(2, 'A conta é obrigatória.'),
-  discounts: z.coerce.number().optional(),
-  additions: z.coerce.number().optional(),
+  discounts: z.coerce.number().optional().default(0),
+  additions: z.coerce.number().optional().default(0),
+  destination: z.enum(['Personal', 'Company'], {
+    required_error: 'Você precisa selecionar um destino para o depósito.',
+  }),
 });
 
 type PropertyRentFormProps = {
-  userId: string;
   propertyId: string;
+  propertyName: string;
   rent?: PropertyRent;
   baseRentAmount?: number;
 };
 
-export function PropertyRentForm({ userId, propertyId, rent, baseRentAmount }: PropertyRentFormProps) {
+export function PropertyRentForm({ propertyId, propertyName, rent, baseRentAmount }: PropertyRentFormProps) {
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const firestore = useFirestore();
+  const { user } = useUser();
   const { toast } = useToast();
   const isEditing = !!rent;
 
@@ -63,6 +69,7 @@ export function PropertyRentForm({ userId, propertyId, rent, baseRentAmount }: P
       account: '',
       discounts: 0,
       additions: 0,
+      destination: 'Personal',
     },
   });
 
@@ -75,6 +82,7 @@ export function PropertyRentForm({ userId, propertyId, rent, baseRentAmount }: P
         account: rent.account,
         discounts: rent.discounts || 0,
         additions: rent.additions || 0,
+        destination: rent.destination,
       });
     } else {
       form.reset({
@@ -84,57 +92,92 @@ export function PropertyRentForm({ userId, propertyId, rent, baseRentAmount }: P
         account: '',
         discounts: 0,
         additions: 0,
+        destination: 'Personal',
       });
     }
   }, [rent, isEditing, form, open, baseRentAmount]);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    if (!firestore) return;
+    if (!firestore || !user) return;
     setIsSubmitting(true);
 
-    const rentData = {
-      ...values,
-      date: values.date.toISOString(),
-      propertyId,
-    };
+    const finalAmount = (values.amount || 0) + (values.additions || 0) - (values.discounts || 0);
 
     try {
-      const rentsCollection = collection(firestore, `users/${userId}/properties/${propertyId}/rents`);
-      if (isEditing && rent) {
-        const rentDoc = doc(rentsCollection, rent.id);
-        setDoc(rentDoc, rentData)
-          .then(() => {
-            toast({ title: 'Sucesso!', description: 'Aluguel do imóvel atualizado.' });
-            setOpen(false);
-          })
-          .catch(async (serverError) => {
-            const permissionError = new FirestorePermissionError({
-              path: rentDoc.path,
-              operation: 'update',
-              requestResourceData: rentData,
-            });
-            errorEmitter.emit('permission-error', permissionError);
-          });
-      } else {
-        addDoc(rentsCollection, rentData)
-          .then(() => {
-            toast({ title: 'Sucesso!', description: 'Aluguel do imóvel adicionado.' });
-            form.reset();
-            setOpen(false);
-          })
-          .catch(async (serverError) => {
-            const permissionError = new FirestorePermissionError({
-              path: rentsCollection.path,
-              operation: 'create',
-              requestResourceData: rentData,
-            });
-            errorEmitter.emit('permission-error', permissionError);
-          });
-      }
+        const batch = writeBatch(firestore);
+
+        // 1. Get or create the 'Aluguel' category
+        const categoryCollectionName = values.destination === 'Personal' ? 'categories' : 'company_categories';
+        const category = await getOrCreateCategory(firestore, user.uid, 'Receita de Aluguel', 'Income', categoryCollectionName);
+
+        // 2. Prepare Rent and Income data
+        const rentRef = isEditing ? doc(firestore, `users/${user.uid}/properties/${propertyId}/rents`, rent!.id) : doc(collection(firestore, `users/${user.uid}/properties/${propertyId}/rents`));
+        
+        const rentData: Omit<PropertyRent, 'id'> = {
+            ...values,
+            date: values.date.toISOString(),
+            propertyId,
+        };
+
+        const incomeCollectionName = values.destination === 'Personal' ? 'incomes' : 'company_incomes';
+        const incomeCollectionRef = collection(firestore, `users/${user.uid}/${incomeCollectionName}`);
+       
+        let incomeRef;
+        if (isEditing) {
+            // Find existing income entry to update it
+            const q = query(incomeCollectionRef, where("propertyRentId", "==", rentRef.id));
+            const querySnapshot = await getDocs(q);
+            if (!querySnapshot.empty) {
+                incomeRef = querySnapshot.docs[0].ref;
+            } else {
+                // If it doesn't exist, create a new one. This handles cases where the destination changes.
+                 // We also need to delete the old one from the other collection.
+                const oldCollectionName = rent.destination === 'Personal' ? 'incomes' : 'company_incomes';
+                const oldIncomeQuery = query(collection(firestore, `users/${user.uid}/${oldCollectionName}`), where("propertyRentId", "==", rent!.id));
+                const oldIncomeSnap = await getDocs(oldIncomeQuery);
+                if(!oldIncomeSnap.empty){
+                    batch.delete(oldIncomeSnap.docs[0].ref);
+                }
+                incomeRef = doc(incomeCollectionRef);
+            }
+        } else {
+            incomeRef = doc(incomeCollectionRef);
+        }
+
+        const incomeData = {
+            amount: finalAmount,
+            categoryId: category.id,
+            date: values.date.toISOString(),
+            details: `Aluguel: ${propertyName}`,
+            receiptMethod: `Depósito (${values.account})`,
+            userId: user.uid,
+            propertyRentId: rentRef.id,
+        };
+
+        // 3. Add operations to batch
+        batch.set(rentRef, rentData);
+        batch.set(incomeRef, incomeData);
+        
+        // 4. Commit batch
+        await batch.commit();
+
+        toast({ title: 'Sucesso!', description: `Aluguel ${isEditing ? 'atualizado' : 'adicionado'} e lançado como receita.` });
+        setOpen(false);
+
+    } catch (error) {
+        console.error("Error saving rent and income:", error);
+        toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível salvar o aluguel e a receita.' });
+        // Although not a permission error, we can use the emitter for consistency if needed
+        const permissionError = new FirestorePermissionError({
+            path: `users/${user.uid}/properties/${propertyId}/rents`,
+            operation: 'write',
+        });
+        errorEmitter.emit('permission-error', permissionError);
     } finally {
-      setIsSubmitting(false);
+        setIsSubmitting(false);
     }
   }
+
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -150,13 +193,43 @@ export function PropertyRentForm({ userId, propertyId, rent, baseRentAmount }: P
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+                control={form.control}
+                name="destination"
+                render={({ field }) => (
+                    <FormItem className="space-y-3">
+                    <FormLabel>Destino do Depósito</FormLabel>
+                    <FormControl>
+                        <RadioGroup
+                        onValueChange={field.onChange}
+                        value={field.value}
+                        className="flex space-x-4"
+                        >
+                        <FormItem className="flex items-center space-x-2 space-y-0">
+                            <FormControl>
+                            <RadioGroupItem value="Personal" />
+                            </FormControl>
+                            <FormLabel className="font-normal">Pessoal</FormLabel>
+                        </FormItem>
+                        <FormItem className="flex items-center space-x-2 space-y-0">
+                            <FormControl>
+                            <RadioGroupItem value="Company" />
+                            </FormControl>
+                            <FormLabel className="font-normal">Empresa</FormLabel>
+                        </FormItem>
+                        </RadioGroup>
+                    </FormControl>
+                    <FormMessage />
+                    </FormItem>
+                )}
+            />
             <div className="grid grid-cols-2 gap-4">
                 <FormField
                     control={form.control}
                     name="amount"
                     render={({ field }) => (
                         <FormItem>
-                        <FormLabel>Valor Recebido</FormLabel>
+                        <FormLabel>Valor Recebido (base)</FormLabel>
                         <FormControl>
                             <Input type="number" placeholder="R$ 0,00" {...field} step="0.01" />
                         </FormControl>

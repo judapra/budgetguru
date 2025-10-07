@@ -111,7 +111,7 @@ export function PropertyList({ properties, userId }: PropertyListProps) {
                 <AccordionItem value="rents">
                     <AccordionTrigger>Ver Aluguéis</AccordionTrigger>
                     <AccordionContent>
-                        <PropertyRents propertyId={property.id} userId={userId} baseRentAmount={property.netRent} />
+                        <PropertyRents propertyId={property.id} propertyName={property.name} userId={userId} baseRentAmount={property.netRent} />
                     </AccordionContent>
                 </AccordionItem>
                 <AccordionItem value="expenses">
