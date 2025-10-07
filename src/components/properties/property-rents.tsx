@@ -102,12 +102,8 @@ export function PropertyRents({ propertyId, propertyName, userId, baseRentAmount
                                 {rent.details && <p className="text-xs text-muted-foreground italic pt-1">{rent.details}</p>}
                                 
                             </div>
-                            <div className="flex flex-col items-end justify-start ml-2">
-                                <PropertyRentForm userId={userId} propertyId={propertyId} propertyName={propertyName} rent={rent} baseRentAmount={baseRentAmount} >
-                                    <Button variant="ghost" size="icon" className="h-6 w-6">
-                                        <Pencil className="h-3 w-3" />
-                                    </Button>
-                                </PropertyRentForm>
+                            <div className="flex flex-col items-center justify-start ml-2">
+                                <PropertyRentForm userId={userId} propertyId={propertyId} propertyName={propertyName} rent={rent} baseRentAmount={baseRentAmount} />
                                 <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleDeleteRent(rent)}>
                                     <Trash2 className="h-3 w-3" />
                                 </Button>
@@ -122,3 +118,5 @@ export function PropertyRents({ propertyId, propertyName, userId, baseRentAmount
         </div>
     )
 }
+
+    

@@ -33,7 +33,7 @@ import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
 import { getOrCreateCategory } from '@/lib/category-actions';
 
 const formSchema = z.object({
-  amount: z.coerce.number().min(0.01, 'O valor deve ser maior que zero.'),
+  amount: z.coerce.number().min(0, 'O valor deve ser positivo ou zero.'),
   details: z.string().optional(),
   date: z.date({ required_error: 'A data é obrigatória.' }),
   account: z.string().min(2, 'A conta é obrigatória.'),
@@ -76,12 +76,12 @@ export function PropertyRentForm({ propertyId, propertyName, rent, baseRentAmoun
   useEffect(() => {
     if (isEditing && rent) {
       form.reset({
-        amount: rent.amount,
+        amount: getRoundedValue(rent.amount),
         details: rent.details,
         date: new Date(rent.date),
         account: rent.account,
-        discounts: rent.discounts || 0,
-        additions: rent.additions || 0,
+        discounts: getRoundedValue(rent.discounts),
+        additions: getRoundedValue(rent.additions),
         destination: rent.destination,
       });
     } else {
@@ -108,45 +108,45 @@ export function PropertyRentForm({ propertyId, propertyName, rent, baseRentAmoun
 
         // 1. Get or create the 'Aluguel' category
         const categoryCollectionName = values.destination === 'Personal' ? 'categories' : 'company_categories';
-        const category = await getOrCreateCategory(firestore, user.uid, 'Receita de Aluguel', 'Income', categoryCollectionName);
+        const categoryRef = await getOrCreateCategory(firestore, user.uid, 'Receita de Aluguel', 'Income', categoryCollectionName);
 
         // 2. Prepare Rent and Income data
         const rentRef = isEditing ? doc(firestore, `users/${user.uid}/properties/${propertyId}/rents`, rent!.id) : doc(collection(firestore, `users/${user.uid}/properties/${propertyId}/rents`));
         
         const rentData: Omit<PropertyRent, 'id'> = {
-            ...values,
-            date: values.date.toISOString(),
             propertyId,
+            date: values.date.toISOString(),
+            amount: values.amount,
+            account: values.account,
+            discounts: values.discounts,
+            additions: values.additions,
+            details: values.details,
+            destination: values.destination,
         };
 
         const incomeCollectionName = values.destination === 'Personal' ? 'incomes' : 'company_incomes';
         const incomeCollectionRef = collection(firestore, `users/${user.uid}/${incomeCollectionName}`);
        
         let incomeRef;
-        if (isEditing) {
-            // Find existing income entry to update it
-            const q = query(incomeCollectionRef, where("propertyRentId", "==", rentRef.id));
-            const querySnapshot = await getDocs(q);
-            if (!querySnapshot.empty) {
-                incomeRef = querySnapshot.docs[0].ref;
-            } else {
-                // If it doesn't exist, create a new one. This handles cases where the destination changes.
-                 // We also need to delete the old one from the other collection.
-                const oldCollectionName = rent.destination === 'Personal' ? 'incomes' : 'company_incomes';
-                const oldIncomeQuery = query(collection(firestore, `users/${user.uid}/${oldCollectionName}`), where("propertyRentId", "==", rent!.id));
-                const oldIncomeSnap = await getDocs(oldIncomeQuery);
-                if(!oldIncomeSnap.empty){
-                    batch.delete(oldIncomeSnap.docs[0].ref);
-                }
-                incomeRef = doc(incomeCollectionRef);
+        // If we are editing, we need to handle moving the income record between collections if the destination changes
+        if (isEditing && rent) {
+            const oldCollectionName = rent.destination === 'Personal' ? 'incomes' : 'company_incomes';
+            const oldIncomeQuery = query(collection(firestore, `users/${user.uid}/${oldCollectionName}`), where("propertyRentId", "==", rent.id));
+            const oldIncomeSnap = await getDocs(oldIncomeQuery);
+            
+            // Delete the old income entry regardless of destination change
+            if(!oldIncomeSnap.empty){
+                batch.delete(oldIncomeSnap.docs[0].ref);
             }
-        } else {
-            incomeRef = doc(incomeCollectionRef);
         }
+        
+        // Always create a new income record. This simplifies both creating and editing (by replacing).
+        incomeRef = doc(incomeCollectionRef);
+
 
         const incomeData = {
             amount: finalAmount,
-            categoryId: category.id,
+            categoryId: categoryRef.id,
             date: values.date.toISOString(),
             details: `Aluguel: ${propertyName}`,
             receiptMethod: `Depósito (${values.account})`,
@@ -315,3 +315,5 @@ export function PropertyRentForm({ propertyId, propertyName, rent, baseRentAmoun
     </Dialog>
   );
 }
+
+    
