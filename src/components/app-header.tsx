@@ -22,7 +22,9 @@ export function AppHeader() {
     <header className="border-b">
       <div className="container mx-auto px-4 py-4 flex justify-between items-center">
         <div className="flex items-center gap-6">
-          <Logo />
+          <Link href="/">
+            <Logo />
+          </Link>
           {user && <MainNav />}
         </div>
         {user && (
