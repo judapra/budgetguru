@@ -1,10 +1,33 @@
-import Image from "next/image";
+// src/components/logo.tsx
 
-export function Logo() {
+// A prop 'className' é adicionada para podermos estilizar o tamanho e a cor externamente.
+export function Logo({ className }: { className?: string }) {
   return (
-    <div className="flex items-center gap-2">
-      <Image src="/logo.svg" alt="Budget Guru Logo" width={32} height={32} />
-      <h1 className="text-2xl font-bold text-foreground font-headline">Budget Guru</h1>
-    </div>
+    <svg
+      className={className} // A classe é aplicada aqui
+      width="200" // Mantive width/height para um tamanho padrão, mas pode ser sobrescrito pelo className
+      height="180"
+      viewBox="0 0 200 180"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-label="Budget Guru Logo" // Adicionei um aria-label para acessibilidade
+    >
+      {/* O código do seu logo SVG deve ser colado aqui, substituindo este conteúdo */}
+      <path
+        d="M100 0L200 100H0L100 0Z"
+        fill="currentColor" 
+        className="text-gray-800 dark:text-gray-200"
+      />
+      <path
+        d="M100 180L200 80H0L100 180Z"
+        fill="currentColor"
+        className="text-blue-600 dark:text-blue-400"
+      />
+      <path
+        d="M150 90L100 140L50 90H150Z"
+        fill="currentColor"
+        className="text-white dark:text-gray-900"
+      />
+    </svg>
   );
 }
