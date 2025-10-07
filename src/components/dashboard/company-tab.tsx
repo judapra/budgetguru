@@ -1,6 +1,6 @@
 'use client';
 import { useMemo, useState } from 'react';
-import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
+import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, orderBy, where, doc, setDoc } from 'firebase/firestore';
 import { OverviewChart } from "./overview-chart";
 import { RecentTransactions } from "./recent-transactions";
@@ -150,15 +150,15 @@ export function CompanyTab() {
     const { user } = useUser();
     const firestore = useFirestore();
 
-    // Assuming a single company per user with a known ID, or we use the user's UID as the company doc ID.
     const companyId = user?.uid || 'main'; 
 
     const companyQuery = useMemoFirebase(() => {
         if (!user || !firestore) return null;
-        return doc(firestore, `users/${user.uid}/company/${companyId}`);
-    }, [user, firestore, companyId]);
+        return collection(firestore, `users/${user.uid}/company`);
+    }, [user, firestore]);
 
-    const { data: company, isLoading: loadingCompany } = useDoc<Company>(companyQuery);
+    const { data: companies, isLoading: loadingCompany } = useCollection<Company>(companyQuery);
+    const company = companies?.[0];
 
 
     const incomesQuery = useMemoFirebase(() => {
