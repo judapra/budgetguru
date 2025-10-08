@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useUser } from '@/firebase';
 import {
   GoogleAuthProvider,
+  sendPasswordResetEmail,
   signInWithEmailAndPassword,
   signInWithRedirect,
 } from 'firebase/auth';
@@ -75,6 +76,33 @@ export default function LoginPage() {
     }
   };
 
+  const handlePasswordReset = async () => {
+    if (!auth) return;
+    if (!email) {
+      toast({
+        variant: 'destructive',
+        title: 'E-mail necessário',
+        description: 'Por favor, insira seu e-mail para redefinir a senha.',
+      });
+      return;
+    }
+    try {
+      await sendPasswordResetEmail(auth, email);
+      toast({
+        title: 'E-mail enviado!',
+        description: 'Verifique sua caixa de entrada para o link de redefinição de senha.',
+      });
+    } catch (error: any) {
+      console.error(error);
+      toast({
+        variant: 'destructive',
+        title: 'Falha ao enviar e-mail',
+        description: 'Não foi possível enviar o e-mail de redefinição. Verifique o e-mail digitado.',
+      });
+    }
+  };
+
+
   if (isUserLoading || user) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -86,14 +114,12 @@ export default function LoginPage() {
   return (
     <div className="flex items-center justify-center min-h-screen bg-background">
       <Card className="w-full max-w-sm">
-        <CardHeader className="items-center space-y-4">
-          <Logo large />
-          <div>
+        <CardHeader className="items-center">
+          <Logo />
             <CardTitle className="text-2xl font-headline text-center">Login</CardTitle>
             <CardDescription className="text-center">
               Acesse sua conta para gerenciar suas finanças.
             </CardDescription>
-          </div>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSignIn} className="space-y-4">
@@ -109,7 +135,12 @@ export default function LoginPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Senha</Label>
+                <div className="flex items-center justify-between">
+                    <Label htmlFor="password">Senha</Label>
+                    <Button variant="link" type="button" onClick={handlePasswordReset} className="p-0 h-auto text-xs">
+                        Esqueceu sua senha?
+                    </Button>
+                </div>
               <Input
                 id="password"
                 type="password"

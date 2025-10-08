@@ -110,9 +110,12 @@
         "propertyId": { "type": "string", "description": "Reference to Property. (Relationship: Property 1:N PropertyRent)" },
         "date": { "type": "string", "description": "The date the rent was received.", "format": "date-time" },
         "amount": { "type": "number", "description": "The amount of the rent received." },
-        "details": { "type": "string", "description": "Optional details about the rent payment." }
+        "details": { "type": "string", "description": "Optional details about the rent payment." },
+        "account": { "type": "string", "description": "The bank account where the rent was deposited." },
+        "discounts": { "type": "number", "description": "Any discounts applied to the rent payment." },
+        "additions": { "type": "number", "description": "Any additions or fees applied to the rent payment." }
       },
-      "required": ["id", "propertyId", "date", "amount"]
+      "required": ["id", "propertyId", "date", "amount", "account"]
     }
   },
   "auth": {
@@ -129,7 +132,8 @@
         "description": "Stores user profile information.",
         "permissions": {
           "read": "request.auth.uid == userId",
-          "write": "request.auth.uid == userId"
+          "write": "request.auth.uid == userId",
+          "get": "request.auth.uid == userId"
         }
       },
       {
