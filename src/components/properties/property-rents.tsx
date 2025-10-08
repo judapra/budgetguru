@@ -1,6 +1,6 @@
 'use client'
 import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
-import { deleteDoc, doc, collection, query, orderBy, writeBatch, where, getDocs } from 'firebase/firestore';
+import { deleteDoc, doc, collection, query, orderBy, getDocs, where } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
@@ -27,32 +27,28 @@ export function PropertyRents({ propertyId, propertyName, userId, baseRentAmount
     const handleDeleteRent = async (rent: PropertyRent) => {
         if (!firestore || !user) return;
         
-        const batch = writeBatch(firestore);
-
-        // 1. Reference to the rent document to be deleted
-        const rentDocRef = doc(firestore, `users/${user.uid}/properties/${propertyId}/rents/${rent.id}`);
-        batch.delete(rentDocRef);
-
-        // 2. Find and delete the corresponding income document
-        const incomeCollectionName = rent.destination === 'Personal' ? 'incomes' : 'company_incomes';
-        const incomeQuery = query(collection(firestore, `users/${user.uid}/${incomeCollectionName}`), where("propertyRentId", "==", rent.id));
-        
         try {
+            // First, find and delete the corresponding income document
+            const incomeCollectionName = rent.destination === 'Personal' ? 'incomes' : 'company_incomes';
+            const incomeQuery = query(collection(firestore, `users/${user.uid}/${incomeCollectionName}`), where("propertyRentId", "==", rent.id));
             const incomeSnap = await getDocs(incomeQuery);
+            
             if (!incomeSnap.empty) {
                 const incomeDocRef = incomeSnap.docs[0].ref;
-                batch.delete(incomeDocRef);
+                await deleteDoc(incomeDocRef);
             }
 
-            // 3. Commit the batch
-            await batch.commit();
+            // After successfully deleting the income, delete the rent document
+            const rentDocRef = doc(firestore, `users/${user.uid}/properties/${propertyId}/rents/${rent.id}`);
+            await deleteDoc(rentDocRef);
+
             toast({ title: "Sucesso!", description: "Registro de aluguel e receita correspondente foram excluídos." });
 
         } catch (error) {
             console.error("Error deleting rent and associated income:", error);
             toast({ variant: 'destructive', title: 'Erro', description: "Não foi possível excluir o aluguel e a receita associada." });
             const permissionError = new FirestorePermissionError({
-                path: rentDocRef.path,
+                path: `users/${user.uid}/properties/${propertyId}/rents/${rent.id}`,
                 operation: 'delete',
             });
             errorEmitter.emit('permission-error', permissionError);

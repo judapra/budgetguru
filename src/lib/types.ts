@@ -72,6 +72,7 @@ export type Transaction = {
     discounts?: number;
     additions?: number;
     destination: 'Personal' | 'Company';
+    userId: string;
   };
 
   export type Company = {

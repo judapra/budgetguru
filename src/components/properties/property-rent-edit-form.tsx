@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useFirestore, useUser } from '@/firebase';
-import { doc, setDoc, getDocs, query, where, writeBatch, collection } from 'firebase/firestore';
+import { doc, setDoc, getDocs, query, where, collection, addDoc, deleteDoc } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -93,15 +93,8 @@ export function PropertyRentEditForm({ userId, propertyId, propertyName, rent, b
     const finalAmount = (values.amount || 0) + (values.additions || 0) - (values.discounts || 0);
 
     try {
-        // 1. Get or create the 'Receita de Aluguel' category BEFORE the batch
-        const categoryCollectionName = values.destination === 'Personal' ? 'categories' : 'company_categories';
-        const categoryRef = await getOrCreateCategory(firestore, user.uid, 'Receita de Aluguel', 'Income', categoryCollectionName);
-
-        const batch = writeBatch(firestore);
-
-        // 2. Prepare Rent and Income data
+        // Step 1: Update the rent document
         const rentRef = doc(firestore, `users/${user.uid}/properties/${propertyId}/rents`, rent.id);
-        
         const rentData: Omit<PropertyRent, 'id'> = {
             ...rent,
             date: values.date.toISOString(),
@@ -112,19 +105,24 @@ export function PropertyRentEditForm({ userId, propertyId, propertyName, rent, b
             details: values.details,
             destination: values.destination,
         };
-        
-        // 3. Delete old income entry
+        await setDoc(rentRef, rentData);
+
+        // Step 2: Find the old income entry
         const oldIncomeCollectionName = rent.destination === 'Personal' ? 'incomes' : 'company_incomes';
         const oldIncomeQuery = query(collection(firestore, `users/${user.uid}/${oldIncomeCollectionName}`), where("propertyRentId", "==", rent.id));
         const oldIncomeSnap = await getDocs(oldIncomeQuery);
         
+        // Delete the old income entry if it exists
         if(!oldIncomeSnap.empty){
-            batch.delete(oldIncomeSnap.docs[0].ref);
+            await deleteDoc(oldIncomeSnap.docs[0].ref);
         }
+
+        // Step 3: Get or create the new category and create the new income entry
+        const newCategoryCollectionName = values.destination === 'Personal' ? 'categories' : 'company_categories';
+        const categoryRef = await getOrCreateCategory(firestore, user.uid, 'Receita de Aluguel', 'Income', newCategoryCollectionName);
         
-        // 4. Create new income entry in the correct collection
         const newIncomeCollectionName = values.destination === 'Personal' ? 'incomes' : 'company_incomes';
-        const newIncomeRef = doc(collection(firestore, `users/${user.uid}/${newIncomeCollectionName}`));
+        const newIncomeRef = collection(firestore, `users/${user.uid}/${newIncomeCollectionName}`);
 
         const incomeData = {
             amount: finalAmount,
@@ -136,19 +134,17 @@ export function PropertyRentEditForm({ userId, propertyId, propertyName, rent, b
             propertyRentId: rentRef.id,
         };
 
-        // 5. Add operations to batch
-        batch.set(rentRef, rentData);
-        batch.set(newIncomeRef, incomeData);
+        await addDoc(newIncomeRef, incomeData);
         
-        // 6. Commit batch
-        await batch.commit();
-
         toast({ title: 'Sucesso!', description: 'Aluguel atualizado e receita ajustada.' });
         setOpen(false);
 
     } catch (error) {
         console.error("Error updating rent and income:", error);
-        toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível atualizar o aluguel e a receita.' });
+        toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível atualizar o aluguel e a receita. A operação foi revertida.' });
+        // NOTE: A full rollback for this complex operation would be complicated.
+        // The current implementation might leave the data in an inconsistent state if an error occurs after the first write.
+        // For a production app, a Cloud Function to handle this atomically would be better.
         const permissionError = new FirestorePermissionError({
             path: `users/${user.uid}/properties/${propertyId}/rents/${rent.id}`,
             operation: 'write',

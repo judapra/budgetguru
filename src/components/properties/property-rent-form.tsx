@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useFirestore, useUser } from '@/firebase';
-import { addDoc, collection, doc, setDoc, getDocs, query, where, writeBatch } from 'firebase/firestore';
+import { addDoc, collection, doc, deleteDoc } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -102,17 +102,14 @@ export function PropertyRentForm({ propertyId, propertyName, rent, baseRentAmoun
     setIsSubmitting(true);
 
     const finalAmount = (values.amount || 0) + (values.additions || 0) - (values.discounts || 0);
+    
+    let newRentId: string | null = null;
 
     try {
-        // 1. Get or create the 'Receita de Aluguel' category BEFORE the batch
         const categoryCollectionName = values.destination === 'Personal' ? 'categories' : 'company_categories';
         const categoryRef = await getOrCreateCategory(firestore, user.uid, 'Receita de Aluguel', 'Income', categoryCollectionName);
 
-        const batch = writeBatch(firestore);
-
-        // 2. Prepare Rent data
-        const rentRef = doc(collection(firestore, `users/${user.uid}/properties/${propertyId}/rents`));
-        
+        const rentCollectionRef = collection(firestore, `users/${user.uid}/properties/${propertyId}/rents`);
         const rentData: Omit<PropertyRent, 'id'> = {
             propertyId,
             date: values.date.toISOString(),
@@ -125,9 +122,13 @@ export function PropertyRentForm({ propertyId, propertyName, rent, baseRentAmoun
             userId: user.uid,
         };
 
-        // 3. Prepare Income data
+        // Step 1: Add the rent document
+        const newRentDocRef = await addDoc(rentCollectionRef, rentData);
+        newRentId = newRentDocRef.id;
+
+        // Step 2: Add the corresponding income document
         const incomeCollectionName = values.destination === 'Personal' ? 'incomes' : 'company_incomes';
-        const incomeRef = doc(collection(firestore, `users/${user.uid}/${incomeCollectionName}`));
+        const incomeCollectionRef = collection(firestore, `users/${user.uid}/${incomeCollectionName}`);
        
         const incomeData = {
             amount: finalAmount,
@@ -136,25 +137,29 @@ export function PropertyRentForm({ propertyId, propertyName, rent, baseRentAmoun
             details: `Aluguel: ${propertyName}`,
             receiptMethod: `Depósito (${values.account})`,
             userId: user.uid,
-            propertyRentId: rentRef.id,
+            propertyRentId: newRentId,
         };
 
-        // 4. Add operations to batch
-        batch.set(rentRef, rentData);
-        batch.set(incomeRef, incomeData);
-        
-        // 5. Commit batch
-        await batch.commit();
+        await addDoc(incomeCollectionRef, incomeData);
 
         toast({ title: 'Sucesso!', description: `Aluguel adicionado e lançado como receita.` });
         setOpen(false);
 
     } catch (error) {
         console.error("Error saving rent and income:", error);
-        toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível salvar o aluguel e a receita.' });
+        
+        // Rollback: If rent was created but income failed, delete the rent.
+        if (newRentId) {
+            const rentDocToDelete = doc(firestore, `users/${user.uid}/properties/${propertyId}/rents`, newRentId);
+            await deleteDoc(rentDocToDelete);
+            console.log("Rollback successful: orphaned rent document deleted.");
+        }
+
+        toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível salvar o aluguel e a receita. Verifique suas permissões e tente novamente.' });
+        
         const permissionError = new FirestorePermissionError({
             path: `users/${user.uid}/properties/${propertyId}/rents`,
-            operation: 'write',
+            operation: 'create',
         });
         errorEmitter.emit('permission-error', permissionError);
     } finally {
