@@ -6,6 +6,7 @@ import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { PropertyRentForm } from './property-rent-form';
 import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 import { type PropertyRent } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Trash2, Banknote, Landmark, Pencil, Briefcase, CircleDollarSign, MessageSquareText } from 'lucide-react';
@@ -76,7 +77,7 @@ export function PropertyRents({ propertyId, propertyName, userId, baseRentAmount
                             <div className="flex-1 space-y-2">
                                 <div className='flex justify-between items-start'>
                                     <div>
-                                     <p className="text-sm font-semibold">{format(new Date(rent.date), 'MMMM \'de\' yyyy', { locale: require('date-fns/locale/pt-BR')})}</p>
+                                     <p className="text-sm font-semibold">{format(new Date(rent.date), "MMMM 'de' yyyy", { locale: ptBR })}</p>
                                      <p className="text-xs text-muted-foreground capitalize">{new Date(rent.date).toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit' })}</p>
                                     </div>
                                     <p className="text-sm font-bold text-green-600">{formatCurrency(finalAmount)}</p>
