@@ -20,6 +20,9 @@ import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebas
 import { collection, query, getDocs } from 'firebase/firestore';
 import type { Property, PropertyRent, PropertyExpense } from '@/lib/types';
 import { Loader2 } from 'lucide-react';
+import Link from 'next/link';
+import { Button } from '../ui/button';
+import { ArrowRight } from 'lucide-react';
 
 const initialState = {
   summary: null,
@@ -108,7 +111,10 @@ export function RealEstateTab() {
 
   useEffect(() => {
     const fetchAllData = async () => {
-        if (!properties || !firestore || !user) return;
+        if (!properties || !firestore || !user) {
+            setIsLoading(false);
+            return;
+        }
         
         setIsLoading(true);
         let rents: PropertyRent[] = [];
@@ -154,6 +160,24 @@ export function RealEstateTab() {
         </div>
     );
   }
+  
+  const hasProperties = properties && properties.length > 0;
+  
+  if (!hasProperties) {
+    return (
+      <div className="text-center p-8 border rounded-lg max-w-2xl mx-auto">
+        <h2 className="text-xl font-bold font-headline mb-2">Gerencie seus Imóveis Aqui</h2>
+        <p className="text-muted-foreground mb-4">Adicione seus imóveis para começar a gerenciar aluguéis, despesas e ver a performance do seu portfólio.</p>
+        <Button asChild>
+            <Link href="/properties">
+                Adicionar Imóvel
+                <ArrowRight className="ml-2 h-4 w-4" />
+            </Link>
+        </Button>
+      </div>
+    )
+  }
+
 
   return (
     <div className="max-w-4xl mx-auto space-y-8">

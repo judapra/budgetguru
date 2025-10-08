@@ -37,7 +37,7 @@ export function OverviewChart({ data, title, description, actions }: OverviewCha
   };
 
   return (
-    <Card>
+    <Card className="h-full">
       <CardHeader>
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
           <div className="flex-1">
