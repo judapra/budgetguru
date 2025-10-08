@@ -21,7 +21,7 @@ import { Label } from '@/components/ui/label';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
-import { Logo } from '@/components/logo'; // Lembre-se de usar 'Logo' ou 'NewLogo' conforme o nome final
+import { Logo } from '@/components/logo';
 
 export default function SignupPage() {
   const { user, auth, isUserLoading } = useUser();
@@ -101,8 +101,7 @@ export default function SignupPage() {
     <div className="flex items-center justify-center min-h-screen bg-background">
       <Card className="w-full max-w-sm">
         <CardHeader className="items-center space-y-4">
-          {/* --- A ÚNICA ALTERAÇÃO ESTÁ AQUI --- */}
-          <Logo className="w-full h-auto mb-4" />
+          <Logo large className="mb-4" />
           <div>
             <CardTitle className="text-2xl font-headline text-center">Cadastro</CardTitle>
             <CardDescription className="text-center">

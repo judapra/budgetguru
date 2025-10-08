@@ -2,8 +2,6 @@
 
 import { useUser } from "@/firebase";
 import { Button } from "./ui/button";
-// --- CORREÇÃO APLICADA AQUI ---
-// Troquei o import relativo por um alias, que é mais seguro e padronizado.
 import { Logo } from "@/components/logo"; 
 import Link from "next/link";
 import { MainNav } from "./main-nav";
@@ -17,7 +15,7 @@ export function AppHeader() {
       <div className="container mx-auto px-4 py-4 flex justify-between items-center">
         <div className="flex items-center gap-6">
           <Link href="/">
-            <Logo className="h-12 w-12" />
+            <Logo />
           </Link>
           {user && <MainNav />}
         </div>
