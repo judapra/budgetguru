@@ -111,13 +111,13 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-background">
+    <div className="flex items-center justify-center min-h-screen bg-background p-4">
       <Card className="w-full max-w-sm">
-        <CardHeader className="items-center space-y-4">
+        <CardHeader className="items-center space-y-4 text-center">
           <Logo large className="mb-4" />
-          <div>
-            <CardTitle className="text-2xl font-headline text-center">Login</CardTitle>
-            <CardDescription className="text-center">
+          <div className="space-y-1">
+            <CardTitle className="text-2xl font-headline">Bem-vindo de volta!</CardTitle>
+            <CardDescription>
               Acesse sua conta para gerenciar suas finanças.
             </CardDescription>
           </div>
