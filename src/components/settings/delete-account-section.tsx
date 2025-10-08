@@ -13,7 +13,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { useUser, useFirestore } from "@/firebase";
 import { useToast } from "@/hooks/use-toast";
 import { deleteUser, EmailAuthProvider, reauthenticateWithCredential } from "firebase/auth";

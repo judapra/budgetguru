@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useFirestore, useUser } from '@/firebase';
-import { addDoc, collection, doc, setDoc, getDocs, query, where, writeBatch } from 'firebase/firestore';
+import { doc, setDoc, getDocs, query, where, writeBatch, collection } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -22,7 +22,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Loader2, Plus } from 'lucide-react';
+import { Loader2, Pencil } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { PropertyRent } from '@/lib/types';
 import { errorEmitter } from '@/firebase/error-emitter';
@@ -44,58 +44,47 @@ const formSchema = z.object({
   }),
 });
 
-type PropertyRentFormProps = {
+type PropertyRentEditFormProps = {
+  userId: string;
   propertyId: string;
   propertyName: string;
-  rent?: PropertyRent;
+  rent: PropertyRent;
   baseRentAmount?: number;
 };
 
-export function PropertyRentForm({ propertyId, propertyName, rent, baseRentAmount }: PropertyRentFormProps) {
+export function PropertyRentEditForm({ userId, propertyId, propertyName, rent, baseRentAmount }: PropertyRentEditFormProps) {
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const firestore = useFirestore();
   const { user } = useUser();
   const { toast } = useToast();
-  const isEditing = !!rent;
 
   const getRoundedValue = (value?: number) => value ? parseFloat(value.toFixed(2)) : 0;
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      amount: getRoundedValue(baseRentAmount),
-      details: '',
-      account: '',
-      discounts: 0,
-      additions: 0,
-      destination: 'Personal',
+      amount: getRoundedValue(rent.amount),
+      details: rent.details || '',
+      date: new Date(rent.date),
+      account: rent.account,
+      discounts: getRoundedValue(rent.discounts),
+      additions: getRoundedValue(rent.additions),
+      destination: rent.destination,
     },
   });
 
   useEffect(() => {
-    if (isEditing && rent) {
-      form.reset({
-        amount: getRoundedValue(rent.amount),
-        details: rent.details,
-        date: new Date(rent.date),
-        account: rent.account,
-        discounts: getRoundedValue(rent.discounts),
-        additions: getRoundedValue(rent.additions),
-        destination: rent.destination,
-      });
-    } else {
-      form.reset({
-        amount: getRoundedValue(baseRentAmount),
-        details: '',
-        date: new Date(),
-        account: '',
-        discounts: 0,
-        additions: 0,
-        destination: 'Personal',
-      });
-    }
-  }, [rent, isEditing, form, open, baseRentAmount]);
+    form.reset({
+      amount: getRoundedValue(rent.amount),
+      details: rent.details || '',
+      date: new Date(rent.date),
+      account: rent.account,
+      discounts: getRoundedValue(rent.discounts),
+      additions: getRoundedValue(rent.additions),
+      destination: rent.destination,
+    });
+  }, [rent, form, open]);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (!firestore || !user) return;
@@ -106,15 +95,13 @@ export function PropertyRentForm({ propertyId, propertyName, rent, baseRentAmoun
     try {
         const batch = writeBatch(firestore);
 
-        // 1. Get or create the 'Aluguel' category
         const categoryCollectionName = values.destination === 'Personal' ? 'categories' : 'company_categories';
         const categoryRef = await getOrCreateCategory(firestore, user.uid, 'Receita de Aluguel', 'Income', categoryCollectionName);
 
-        // 2. Prepare Rent and Income data
-        const rentRef = isEditing && rent ? doc(firestore, `users/${user.uid}/properties/${propertyId}/rents`, rent.id) : doc(collection(firestore, `users/${user.uid}/properties/${propertyId}/rents`));
+        const rentRef = doc(firestore, `users/${user.uid}/properties/${propertyId}/rents`, rent.id);
         
         const rentData: Omit<PropertyRent, 'id'> = {
-            propertyId,
+            ...rent,
             date: values.date.toISOString(),
             amount: values.amount,
             account: values.account,
@@ -124,25 +111,16 @@ export function PropertyRentForm({ propertyId, propertyName, rent, baseRentAmoun
             destination: values.destination,
         };
 
-        const incomeCollectionName = values.destination === 'Personal' ? 'incomes' : 'company_incomes';
-        const incomeCollectionRef = collection(firestore, `users/${user.uid}/${incomeCollectionName}`);
-       
-        let incomeRef;
-        // If we are editing, we need to handle moving the income record between collections if the destination changes
-        if (isEditing && rent) {
-            const oldCollectionName = rent.destination === 'Personal' ? 'incomes' : 'company_incomes';
-            const oldIncomeQuery = query(collection(firestore, `users/${user.uid}/${oldCollectionName}`), where("propertyRentId", "==", rent.id));
-            const oldIncomeSnap = await getDocs(oldIncomeQuery);
-            
-            // Delete the old income entry regardless of destination change
-            if(!oldIncomeSnap.empty){
-                batch.delete(oldIncomeSnap.docs[0].ref);
-            }
+        const oldIncomeCollectionName = rent.destination === 'Personal' ? 'incomes' : 'company_incomes';
+        const oldIncomeQuery = query(collection(firestore, `users/${user.uid}/${oldIncomeCollectionName}`), where("propertyRentId", "==", rent.id));
+        const oldIncomeSnap = await getDocs(oldIncomeQuery);
+        
+        if(!oldIncomeSnap.empty){
+            batch.delete(oldIncomeSnap.docs[0].ref);
         }
         
-        // Always create a new income record. This simplifies both creating and editing (by replacing).
-        incomeRef = doc(incomeCollectionRef);
-
+        const newIncomeCollectionName = values.destination === 'Personal' ? 'incomes' : 'company_incomes';
+        const newIncomeRef = doc(collection(firestore, `users/${user.uid}/${newIncomeCollectionName}`));
 
         const incomeData = {
             amount: finalAmount,
@@ -154,22 +132,19 @@ export function PropertyRentForm({ propertyId, propertyName, rent, baseRentAmoun
             propertyRentId: rentRef.id,
         };
 
-        // 3. Add operations to batch
         batch.set(rentRef, rentData);
-        batch.set(incomeRef, incomeData);
+        batch.set(newIncomeRef, incomeData);
         
-        // 4. Commit batch
         await batch.commit();
 
-        toast({ title: 'Sucesso!', description: `Aluguel ${isEditing ? 'atualizado' : 'adicionado'} e lançado como receita.` });
+        toast({ title: 'Sucesso!', description: 'Aluguel atualizado e receita ajustada.' });
         setOpen(false);
 
     } catch (error) {
-        console.error("Error saving rent and income:", error);
-        toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível salvar o aluguel e a receita.' });
-        // Although not a permission error, we can use the emitter for consistency if needed
+        console.error("Error updating rent and income:", error);
+        toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível atualizar o aluguel e a receita.' });
         const permissionError = new FirestorePermissionError({
-            path: `users/${user.uid}/properties/${propertyId}/rents`,
+            path: `users/${user.uid}/properties/${propertyId}/rents/${rent.id}`,
             operation: 'write',
         });
         errorEmitter.emit('permission-error', permissionError);
@@ -182,14 +157,13 @@ export function PropertyRentForm({ propertyId, propertyName, rent, baseRentAmoun
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="h-7">
-          <Plus className="mr-2 h-4 w-4" />
-          Adicionar
+        <Button variant="ghost" size="icon" className="h-6 w-6">
+          <Pencil className="h-3 w-3" />
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="font-headline">{isEditing ? 'Editar Aluguel' : 'Adicionar Aluguel'}</DialogTitle>
+          <DialogTitle className="font-headline">Editar Aluguel</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -307,7 +281,7 @@ export function PropertyRentForm({ propertyId, propertyName, rent, baseRentAmoun
             />
             <Button type="submit" disabled={isSubmitting} className="w-full font-headline">
               {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {isEditing ? 'Salvar Alterações' : 'Salvar Aluguel'}
+              Salvar Alterações
             </Button>
           </form>
         </Form>

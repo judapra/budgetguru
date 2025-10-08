@@ -9,6 +9,7 @@ import { format } from 'date-fns';
 import { type PropertyRent } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Trash2, Banknote, Landmark, Pencil } from 'lucide-react';
+import { PropertyRentEditForm } from './property-rent-edit-form';
 
 
 export function PropertyRents({ propertyId, propertyName, userId, baseRentAmount }: { propertyId: string, propertyName: string, userId: string, baseRentAmount: number }) {
@@ -103,7 +104,7 @@ export function PropertyRents({ propertyId, propertyName, userId, baseRentAmount
                                 
                             </div>
                             <div className="flex flex-col items-center justify-start ml-2">
-                                <PropertyRentForm userId={userId} propertyId={propertyId} propertyName={propertyName} rent={rent} baseRentAmount={baseRentAmount} />
+                                <PropertyRentEditForm userId={userId} propertyId={propertyId} propertyName={propertyName} rent={rent} baseRentAmount={baseRentAmount} />
                                 <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleDeleteRent(rent)}>
                                     <Trash2 className="h-3 w-3" />
                                 </Button>
@@ -118,5 +119,3 @@ export function PropertyRents({ propertyId, propertyName, userId, baseRentAmount
         </div>
     )
 }
-
-    
