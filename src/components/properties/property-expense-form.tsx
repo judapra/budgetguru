@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useFirestore, useUser } from '@/firebase';
-import { addDoc, collection, doc, deleteDoc, getDocs, query, where } from 'firebase/firestore';
+import { addDoc, collection, doc, deleteDoc, getDocs, query, where, setDoc, writeBatch } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -23,7 +23,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Loader2, Plus } from 'lucide-react';
+import { Loader2, Plus, Pencil } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { Category, PropertyExpense } from '@/lib/types';
 import { errorEmitter } from '@/firebase/error-emitter';
@@ -114,65 +114,106 @@ export function PropertyExpenseForm({ userId, propertyId, propertyName, expense 
     if (!firestore || !user) return;
     setIsSubmitting(true);
 
-    let newPropertyExpenseId: string | null = null;
-    try {
-      const categoryCollectionName = values.destination === 'Personal' ? 'categories' : 'company_categories';
-      const categoryDoc = await getOrCreateCategory(firestore, user.uid, 'Despesa de Imóvel', 'Expense', categoryCollectionName);
-      const categoryId = categoryDoc.id;
+    if (isEditing && expense) {
+        // --- EDIT LOGIC ---
+        const batch = writeBatch(firestore);
+        try {
+            // Find the old general expense to delete it
+            const oldCollectionName = expense.destination === 'Personal' ? 'expenses' : 'company_expenses';
+            const generalExpenseQuery = query(collection(firestore, `users/${user.uid}/${oldCollectionName}`), where("propertyExpenseId", "==", expense.id));
+            const generalExpenseSnap = await getDocs(generalExpenseQuery);
 
-      const expensesCollection = collection(firestore, `users/${userId}/properties/${propertyId}/expenses`);
-      const expenseData = {
-        ...values,
-        date: values.date.toISOString(),
-        propertyId,
-        userId,
-      };
+            if (!generalExpenseSnap.empty) {
+                batch.delete(generalExpenseSnap.docs[0].ref);
+            }
 
-      const newPropertyExpenseDocRef = await addDoc(expensesCollection, expenseData);
-      newPropertyExpenseId = newPropertyExpenseDocRef.id;
+            // Get category for the new general expense
+            const newCategoryCollectionName = values.destination === 'Personal' ? 'categories' : 'company_categories';
+            const categoryDoc = await getOrCreateCategory(firestore, user.uid, 'Despesa de Imóvel', 'Expense', newCategoryCollectionName);
+            const categoryId = categoryDoc.id;
 
-      const generalExpenseCollectionName = values.destination === 'Personal' ? 'expenses' : 'company_expenses';
-      const generalExpenseCollectionRef = collection(firestore, `users/${user.uid}/${generalExpenseCollectionName}`);
-      const generalExpenseData = {
-        amount: values.amount,
-        categoryId: categoryId,
-        date: values.date.toISOString(),
-        details: `${values.description} (${propertyName})`,
-        paymentMethod: 'Débito Automático', // Default value or could be a form field
-        userId: user.uid,
-        propertyExpenseId: newPropertyExpenseId,
-      };
-      await addDoc(generalExpenseCollectionRef, generalExpenseData);
+            // Create the new general expense
+            const newGeneralExpenseCollectionName = values.destination === 'Personal' ? 'expenses' : 'company_expenses';
+            const newGeneralExpenseRef = doc(collection(firestore, `users/${user.uid}/${newGeneralExpenseCollectionName}`));
+            batch.set(newGeneralExpenseRef, {
+                amount: values.amount,
+                categoryId: categoryId,
+                date: values.date.toISOString(),
+                details: `${values.description} (${propertyName})`,
+                paymentMethod: 'Débito Automático',
+                userId: user.uid,
+                propertyExpenseId: expense.id,
+            });
 
-      toast({ title: 'Sucesso!', description: 'Despesa do imóvel adicionada e lançada.' });
-      form.reset();
-      setOpen(false);
+            // Update the property expense itself
+            const propertyExpenseRef = doc(firestore, `users/${userId}/properties/${propertyId}/expenses/${expense.id}`);
+            batch.set(propertyExpenseRef, { ...values, date: values.date.toISOString(), propertyId, userId });
 
-    } catch (error) {
-        console.error("Error saving property expense and general expense:", error);
-        if (newPropertyExpenseId) {
-            const docToDelete = doc(firestore, `users/${userId}/properties/${propertyId}/expenses`, newPropertyExpenseId);
-            await deleteDoc(docToDelete);
+            await batch.commit();
+            toast({ title: 'Sucesso!', description: 'Despesa do imóvel atualizada.' });
+            setOpen(false);
+
+        } catch (error) {
+            console.error("Error updating property expense:", error);
+            toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível atualizar a despesa.' });
+            errorEmitter.emit('permission-error', new FirestorePermissionError({ path: `users/${userId}/properties/${propertyId}/expenses`, operation: 'write' }));
         }
-        toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível salvar a despesa. Verifique suas permissões.' });
-        
-        const permissionError = new FirestorePermissionError({
-            path: `users/${userId}/properties/${propertyId}/expenses`,
-            operation: 'create',
-        });
-        errorEmitter.emit('permission-error', permissionError);
-    } finally {
-      setIsSubmitting(false);
+
+    } else {
+        // --- CREATE LOGIC ---
+        let newPropertyExpenseId: string | null = null;
+        try {
+            const categoryCollectionName = values.destination === 'Personal' ? 'categories' : 'company_categories';
+            const categoryDoc = await getOrCreateCategory(firestore, user.uid, 'Despesa de Imóvel', 'Expense', categoryCollectionName);
+            const categoryId = categoryDoc.id;
+
+            const expensesCollection = collection(firestore, `users/${userId}/properties/${propertyId}/expenses`);
+            const expenseData = { ...values, date: values.date.toISOString(), propertyId, userId };
+            const newPropertyExpenseDocRef = await addDoc(expensesCollection, expenseData);
+            newPropertyExpenseId = newPropertyExpenseDocRef.id;
+
+            const generalExpenseCollectionName = values.destination === 'Personal' ? 'expenses' : 'company_expenses';
+            const generalExpenseCollectionRef = collection(firestore, `users/${user.uid}/${generalExpenseCollectionName}`);
+            const generalExpenseData = {
+                amount: values.amount,
+                categoryId: categoryId,
+                date: values.date.toISOString(),
+                details: `${values.description} (${propertyName})`,
+                paymentMethod: 'Débito Automático',
+                userId: user.uid,
+                propertyExpenseId: newPropertyExpenseId,
+            };
+            await addDoc(generalExpenseCollectionRef, generalExpenseData);
+
+            toast({ title: 'Sucesso!', description: 'Despesa do imóvel adicionada.' });
+            form.reset();
+            setOpen(false);
+        } catch (error) {
+            console.error("Error saving property expense:", error);
+            if (newPropertyExpenseId) {
+                await deleteDoc(doc(firestore, `users/${userId}/properties/${propertyId}/expenses`, newPropertyExpenseId));
+            }
+            toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível salvar a despesa.' });
+            errorEmitter.emit('permission-error', new FirestorePermissionError({ path: `users/${userId}/properties/${propertyId}/expenses`, operation: 'create' }));
+        }
     }
+
+    setIsSubmitting(false);
   }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="h-7">
-          <Plus className="mr-2 h-4 w-4" />
-          Adicionar
-        </Button>
+        {isEditing ? (
+             <Button variant="ghost" size="icon" className="h-6 w-6">
+                <Pencil className="h-3 w-3" />
+            </Button>
+        ) : (
+            <Button variant="outline" size="sm" className="h-7">
+                <Plus className="mr-2 h-4 w-4" />
+                Adicionar
+            </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>

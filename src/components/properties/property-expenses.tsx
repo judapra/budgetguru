@@ -64,7 +64,7 @@ export function PropertyExpenses({ propertyId, propertyName, userId }: { propert
                     const DestinationIcon = expense.destination === 'Personal' ? CircleDollarSign : Briefcase;
                     return (
                         <li key={expense.id} className="flex justify-between items-center bg-muted/50 p-3 rounded-md">
-                            <div>
+                            <div className='flex-1'>
                                 <p className="text-sm font-medium">{expense.description}</p>
                                 <p className="text-xs text-muted-foreground">{format(new Date(expense.date), 'dd/MM/yyyy')}</p>
                                 <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
@@ -72,8 +72,9 @@ export function PropertyExpenses({ propertyId, propertyName, userId }: { propert
                                     <span>Lançado em: {expense.destination === 'Personal' ? 'Pessoal' : 'Empresa'}</span>
                                 </div>
                             </div>
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-1">
                                 <p className="text-sm text-red-500">-{expense.amount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
+                                <PropertyExpenseForm userId={userId} propertyId={propertyId} propertyName={propertyName} expense={expense} />
                                 <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleDeleteExpense(expense)}>
                                     <Trash2 className="h-3 w-3" />
                                 </Button>
