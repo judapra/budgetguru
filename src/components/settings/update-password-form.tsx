@@ -1,3 +1,4 @@
+
 // src/components/settings/update-password-form.tsx
 'use client';
 import { useForm } from 'react-hook-form';
