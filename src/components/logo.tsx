@@ -1,20 +1,17 @@
-
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 
 export function Logo({ className, large = false }: { className?: string, large?: boolean }) {
-  const size = large ? 150 : 80;
+  const size = large ? 150 : 40;
   return (
-    <div className={cn("flex flex-col items-center justify-center gap-2", className)}>
+    <div className={cn("flex items-center justify-center", className)}>
       <Image 
         src="/logo.svg" 
         alt="Budget Guru Logo" 
         width={size} 
         height={size}
+        priority
       />
-      {large && (
-          <h1 className="text-4xl font-headline font-bold text-primary">Budget Guru</h1>
-      )}
     </div>
   );
 }
