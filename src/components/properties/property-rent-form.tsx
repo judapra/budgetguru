@@ -122,6 +122,7 @@ export function PropertyRentForm({ propertyId, propertyName, rent, baseRentAmoun
             additions: values.additions,
             details: values.details,
             destination: values.destination,
+            userId: user.uid,
         };
 
         const incomeCollectionName = values.destination === 'Personal' ? 'incomes' : 'company_incomes';
