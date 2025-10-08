@@ -1,4 +1,3 @@
-
 // src/components/settings/update-email-form.tsx
 'use client';
 import { useForm } from 'react-hook-form';
@@ -8,11 +7,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '../ui/form';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
-import { useUser } from '@/firebase';
+import { useUser, useFirestore } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import { EmailAuthProvider, reauthenticateWithCredential, updateEmail } from 'firebase/auth';
+import { doc, setDoc } from 'firebase/firestore';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
+
 
 const emailSchema = z.object({
   newEmail: z.string().email('Por favor, insira um e-mail válido.'),
@@ -21,6 +24,7 @@ const emailSchema = z.object({
 
 export function UpdateEmailForm() {
   const { user, auth } = useUser();
+  const firestore = useFirestore();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -33,7 +37,7 @@ export function UpdateEmailForm() {
   });
 
   async function onSubmit(values: z.infer<typeof emailSchema>) {
-    if (!user || !auth?.currentUser) return;
+    if (!user || !auth?.currentUser || !firestore) return;
     if (user.email === values.newEmail) {
         toast({
             variant: 'destructive',
@@ -45,19 +49,23 @@ export function UpdateEmailForm() {
 
     setIsSubmitting(true);
     try {
-      // Re-authenticate user first for security
+      // 1. Re-authenticate user first for security
       const credential = EmailAuthProvider.credential(user.email!, values.password);
       await reauthenticateWithCredential(auth.currentUser, credential);
 
-      // If re-authentication is successful, update the email
+      // 2. If re-authentication is successful, update the email in Firebase Auth
       await updateEmail(auth.currentUser, values.newEmail);
+      
+      // 3. Update the email in the Firestore user document
+      const userRef = doc(firestore, 'users', user.uid);
+      await setDoc(userRef, { email: values.newEmail }, { merge: true });
       
       toast({
         title: 'Sucesso!',
         description: 'Seu e-mail foi atualizado. Você precisará fazer login novamente.',
       });
       
-      // Force sign out to make user log in with new email
+      // 4. Force sign out to make user log in with new email
       await auth.signOut();
 
     } catch (error: any) {
@@ -69,7 +77,16 @@ export function UpdateEmailForm() {
         description = 'Este e-mail já está sendo utilizado por outra conta.';
       } else if (error.code === 'auth/requires-recent-login') {
         description = 'Esta operação é sensível e requer autenticação recente. Faça login novamente antes de tentar alterar o e-mail.';
+      } else {
+        // Handle potential Firestore error
+         const permissionError = new FirestorePermissionError({
+            path: `users/${user.uid}`,
+            operation: 'update',
+            requestResourceData: { email: values.newEmail },
+        });
+        errorEmitter.emit('permission-error', permissionError);
       }
+
       toast({
         variant: 'destructive',
         title: 'Falha ao alterar e-mail',

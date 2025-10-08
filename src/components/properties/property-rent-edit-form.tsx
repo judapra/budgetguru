@@ -93,11 +93,13 @@ export function PropertyRentEditForm({ userId, propertyId, propertyName, rent, b
     const finalAmount = (values.amount || 0) + (values.additions || 0) - (values.discounts || 0);
 
     try {
-        const batch = writeBatch(firestore);
-
+        // 1. Get or create the 'Receita de Aluguel' category BEFORE the batch
         const categoryCollectionName = values.destination === 'Personal' ? 'categories' : 'company_categories';
         const categoryRef = await getOrCreateCategory(firestore, user.uid, 'Receita de Aluguel', 'Income', categoryCollectionName);
 
+        const batch = writeBatch(firestore);
+
+        // 2. Prepare Rent and Income data
         const rentRef = doc(firestore, `users/${user.uid}/properties/${propertyId}/rents`, rent.id);
         
         const rentData: Omit<PropertyRent, 'id'> = {
@@ -110,7 +112,8 @@ export function PropertyRentEditForm({ userId, propertyId, propertyName, rent, b
             details: values.details,
             destination: values.destination,
         };
-
+        
+        // 3. Delete old income entry
         const oldIncomeCollectionName = rent.destination === 'Personal' ? 'incomes' : 'company_incomes';
         const oldIncomeQuery = query(collection(firestore, `users/${user.uid}/${oldIncomeCollectionName}`), where("propertyRentId", "==", rent.id));
         const oldIncomeSnap = await getDocs(oldIncomeQuery);
@@ -119,6 +122,7 @@ export function PropertyRentEditForm({ userId, propertyId, propertyName, rent, b
             batch.delete(oldIncomeSnap.docs[0].ref);
         }
         
+        // 4. Create new income entry in the correct collection
         const newIncomeCollectionName = values.destination === 'Personal' ? 'incomes' : 'company_incomes';
         const newIncomeRef = doc(collection(firestore, `users/${user.uid}/${newIncomeCollectionName}`));
 
@@ -132,9 +136,11 @@ export function PropertyRentEditForm({ userId, propertyId, propertyName, rent, b
             propertyRentId: rentRef.id,
         };
 
+        // 5. Add operations to batch
         batch.set(rentRef, rentData);
         batch.set(newIncomeRef, incomeData);
         
+        // 6. Commit batch
         await batch.commit();
 
         toast({ title: 'Sucesso!', description: 'Aluguel atualizado e receita ajustada.' });

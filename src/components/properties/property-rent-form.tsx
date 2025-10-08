@@ -104,14 +104,14 @@ export function PropertyRentForm({ propertyId, propertyName, rent, baseRentAmoun
     const finalAmount = (values.amount || 0) + (values.additions || 0) - (values.discounts || 0);
 
     try {
-        const batch = writeBatch(firestore);
-
-        // 1. Get or create the 'Aluguel' category
+        // 1. Get or create the 'Receita de Aluguel' category BEFORE the batch
         const categoryCollectionName = values.destination === 'Personal' ? 'categories' : 'company_categories';
         const categoryRef = await getOrCreateCategory(firestore, user.uid, 'Receita de Aluguel', 'Income', categoryCollectionName);
 
-        // 2. Prepare Rent and Income data
-        const rentRef = isEditing && rent ? doc(firestore, `users/${user.uid}/properties/${propertyId}/rents`, rent.id) : doc(collection(firestore, `users/${user.uid}/properties/${propertyId}/rents`));
+        const batch = writeBatch(firestore);
+
+        // 2. Prepare Rent data
+        const rentRef = doc(collection(firestore, `users/${user.uid}/properties/${propertyId}/rents`));
         
         const rentData: Omit<PropertyRent, 'id'> = {
             propertyId,
@@ -125,26 +125,10 @@ export function PropertyRentForm({ propertyId, propertyName, rent, baseRentAmoun
             userId: user.uid,
         };
 
+        // 3. Prepare Income data
         const incomeCollectionName = values.destination === 'Personal' ? 'incomes' : 'company_incomes';
-        const incomeCollectionRef = collection(firestore, `users/${user.uid}/${incomeCollectionName}`);
+        const incomeRef = doc(collection(firestore, `users/${user.uid}/${incomeCollectionName}`));
        
-        let incomeRef;
-        // If we are editing, we need to handle moving the income record between collections if the destination changes
-        if (isEditing && rent) {
-            const oldCollectionName = rent.destination === 'Personal' ? 'incomes' : 'company_incomes';
-            const oldIncomeQuery = query(collection(firestore, `users/${user.uid}/${oldCollectionName}`), where("propertyRentId", "==", rent.id));
-            const oldIncomeSnap = await getDocs(oldIncomeQuery);
-            
-            // Delete the old income entry regardless of destination change
-            if(!oldIncomeSnap.empty){
-                batch.delete(oldIncomeSnap.docs[0].ref);
-            }
-        }
-        
-        // Always create a new income record. This simplifies both creating and editing (by replacing).
-        incomeRef = doc(incomeCollectionRef);
-
-
         const incomeData = {
             amount: finalAmount,
             categoryId: categoryRef.id,
@@ -155,20 +139,19 @@ export function PropertyRentForm({ propertyId, propertyName, rent, baseRentAmoun
             propertyRentId: rentRef.id,
         };
 
-        // 3. Add operations to batch
+        // 4. Add operations to batch
         batch.set(rentRef, rentData);
         batch.set(incomeRef, incomeData);
         
-        // 4. Commit batch
+        // 5. Commit batch
         await batch.commit();
 
-        toast({ title: 'Sucesso!', description: `Aluguel ${isEditing ? 'atualizado' : 'adicionado'} e lançado como receita.` });
+        toast({ title: 'Sucesso!', description: `Aluguel adicionado e lançado como receita.` });
         setOpen(false);
 
     } catch (error) {
         console.error("Error saving rent and income:", error);
         toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível salvar o aluguel e a receita.' });
-        // Although not a permission error, we can use the emitter for consistency if needed
         const permissionError = new FirestorePermissionError({
             path: `users/${user.uid}/properties/${propertyId}/rents`,
             operation: 'write',
@@ -190,7 +173,7 @@ export function PropertyRentForm({ propertyId, propertyName, rent, baseRentAmoun
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="font-headline">{isEditing ? 'Editar Aluguel' : 'Adicionar Aluguel'}</DialogTitle>
+          <DialogTitle className="font-headline">Adicionar Aluguel</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -308,7 +291,7 @@ export function PropertyRentForm({ propertyId, propertyName, rent, baseRentAmoun
             />
             <Button type="submit" disabled={isSubmitting} className="w-full font-headline">
               {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {isEditing ? 'Salvar Alterações' : 'Salvar Aluguel'}
+              Salvar Aluguel
             </Button>
           </form>
         </Form>
