@@ -18,7 +18,7 @@ import { useToast } from '@/hooks/use-toast';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { ExpenseForm } from './expense-form';
-import { Badge } from '../ui/badge';
+import { Badge } from '../../ui/badge';
 
 type ExpensesTableProps = {
   expenses: Expense[];

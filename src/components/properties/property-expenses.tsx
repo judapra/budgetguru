@@ -8,7 +8,7 @@ import { PropertyExpenseForm } from './property-expense-form';
 import { format } from 'date-fns';
 import { type PropertyExpense } from '@/lib/types';
 import { Button } from '@/components/ui/button';
-import { Trash2, Briefcase, CircleDollarSign } from 'lucide-react';
+import { Trash2, Briefcase, CircleDollarSign, Pencil } from 'lucide-react';
 
 
 export function PropertyExpenses({ propertyId, propertyName, userId }: { propertyId: string, propertyName: string, userId: string }) {
