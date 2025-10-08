@@ -3,7 +3,7 @@
 import { AppHeader } from "@/components/app-header";
 import { UpdateProfileForm } from "@/components/settings/update-profile-form";
 import { useUser } from "@/firebase";
-import { useRouter }s from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Loader2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
