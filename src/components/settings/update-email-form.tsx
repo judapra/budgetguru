@@ -37,7 +37,7 @@ export function UpdateEmailForm() {
   });
 
   async function onSubmit(values: z.infer<typeof emailSchema>) {
-    if (!user || !auth?.currentUser || !firestore) return;
+    if (!user || !auth?.currentUser || !firestore || !user.email) return;
     if (user.email === values.newEmail) {
         toast({
             variant: 'destructive',
@@ -49,23 +49,23 @@ export function UpdateEmailForm() {
 
     setIsSubmitting(true);
     try {
-      // 1. Re-authenticate user first for security
-      const credential = EmailAuthProvider.credential(user.email!, values.password);
+      // Step 1: Re-authenticate user for security
+      const credential = EmailAuthProvider.credential(user.email, values.password);
       await reauthenticateWithCredential(auth.currentUser, credential);
 
-      // 2. If re-authentication is successful, update the email in Firebase Auth
-      await updateEmail(auth.currentUser, values.newEmail);
-      
-      // 3. Update the email in the Firestore user document
+      // Step 2: FIRST, update the Firestore user document
       const userRef = doc(firestore, 'users', user.uid);
       await setDoc(userRef, { email: values.newEmail }, { merge: true });
+      
+      // Step 3: THEN, update the email in Firebase Auth
+      await updateEmail(auth.currentUser, values.newEmail);
       
       toast({
         title: 'Sucesso!',
         description: 'Seu e-mail foi atualizado. Você precisará fazer login novamente.',
       });
       
-      // 4. Force sign out to make user log in with new email
+      // Step 4: Force sign out to make user log in with new email
       await auth.signOut();
 
     } catch (error: any) {

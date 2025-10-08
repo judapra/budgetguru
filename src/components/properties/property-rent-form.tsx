@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useFirestore, useUser } from '@/firebase';
-import { addDoc, collection, doc, deleteDoc } from 'firebase/firestore';
+import { addDoc, collection, doc, deleteDoc, getDocs, query, where } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -24,13 +24,12 @@ import {
 import { Input } from '@/components/ui/input';
 import { Loader2, Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import type { PropertyRent } from '@/lib/types';
+import type { Category, PropertyRent } from '@/lib/types';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { InputDatePicker } from '../ui/input-date-picker';
 import { Textarea } from '../ui/textarea';
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
-import { getOrCreateCategory } from '@/lib/category-actions';
 
 const formSchema = z.object({
   amount: z.coerce.number().min(0, 'O valor deve ser positivo ou zero.'),
@@ -50,6 +49,37 @@ type PropertyRentFormProps = {
   rent?: PropertyRent;
   baseRentAmount?: number;
 };
+
+// This function now lives inside the component that uses it, or is passed as a prop
+async function getOrCreateCategory(
+    firestore: any,
+    userId: string,
+    categoryName: string,
+    categoryType: 'Income' | 'Expense',
+    collectionName: 'categories' | 'company_categories'
+  ) {
+    const categoryCollectionRef = collection(firestore, `users/${userId}/${collectionName}`);
+    const q = query(
+      categoryCollectionRef,
+      where('name', '==', categoryName),
+      where('type', '==', categoryType)
+    );
+
+    const querySnapshot = await getDocs(q);
+
+    if (!querySnapshot.empty) {
+      return querySnapshot.docs[0];
+    } else {
+      const newCategory: Omit<Category, 'id'> = {
+        name: categoryName,
+        type: categoryType,
+        userId: userId,
+      };
+      const docRef = await addDoc(categoryCollectionRef, newCategory);
+      return doc(firestore, `users/${userId}/${collectionName}`, docRef.id);
+    }
+}
+
 
 export function PropertyRentForm({ propertyId, propertyName, rent, baseRentAmount }: PropertyRentFormProps) {
   const [open, setOpen] = useState(false);
@@ -106,9 +136,12 @@ export function PropertyRentForm({ propertyId, propertyName, rent, baseRentAmoun
     let newRentId: string | null = null;
 
     try {
+        // First, ensure the category exists and get its ID
         const categoryCollectionName = values.destination === 'Personal' ? 'categories' : 'company_categories';
-        const categoryRef = await getOrCreateCategory(firestore, user.uid, 'Receita de Aluguel', 'Income', categoryCollectionName);
+        const categoryDoc = await getOrCreateCategory(firestore, user.uid, 'Receita de Aluguel', 'Income', categoryCollectionName);
+        const categoryId = categoryDoc.id;
 
+        // Step 1: Add the rent document
         const rentCollectionRef = collection(firestore, `users/${user.uid}/properties/${propertyId}/rents`);
         const rentData: Omit<PropertyRent, 'id'> = {
             propertyId,
@@ -121,8 +154,6 @@ export function PropertyRentForm({ propertyId, propertyName, rent, baseRentAmoun
             destination: values.destination,
             userId: user.uid,
         };
-
-        // Step 1: Add the rent document
         const newRentDocRef = await addDoc(rentCollectionRef, rentData);
         newRentId = newRentDocRef.id;
 
@@ -132,7 +163,7 @@ export function PropertyRentForm({ propertyId, propertyName, rent, baseRentAmoun
        
         const incomeData = {
             amount: finalAmount,
-            categoryId: categoryRef.id,
+            categoryId: categoryId,
             date: values.date.toISOString(),
             details: `Aluguel: ${propertyName}`,
             receiptMethod: `Depósito (${values.account})`,
@@ -145,7 +176,7 @@ export function PropertyRentForm({ propertyId, propertyName, rent, baseRentAmoun
         toast({ title: 'Sucesso!', description: `Aluguel adicionado e lançado como receita.` });
         setOpen(false);
 
-    } catch (error) {
+    } catch (error: any) {
         console.error("Error saving rent and income:", error);
         
         // Rollback: If rent was created but income failed, delete the rent.
@@ -157,8 +188,9 @@ export function PropertyRentForm({ propertyId, propertyName, rent, baseRentAmoun
 
         toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível salvar o aluguel e a receita. Verifique suas permissões e tente novamente.' });
         
+        // Use the error information to create a more specific contextual error
         const permissionError = new FirestorePermissionError({
-            path: `users/${user.uid}/properties/${propertyId}/rents`,
+            path: error.message.includes('incomes') ? `users/${user.uid}/${values.destination === 'Personal' ? 'incomes' : 'company_incomes'}` : `users/${user.uid}/properties/${propertyId}/rents`,
             operation: 'create',
         });
         errorEmitter.emit('permission-error', permissionError);

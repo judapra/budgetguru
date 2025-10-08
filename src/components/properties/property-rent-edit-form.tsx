@@ -24,13 +24,13 @@ import {
 import { Input } from '@/components/ui/input';
 import { Loader2, Pencil } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import type { PropertyRent } from '@/lib/types';
+import type { Category, PropertyRent } from '@/lib/types';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { InputDatePicker } from '../ui/input-date-picker';
 import { Textarea } from '../ui/textarea';
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
-import { getOrCreateCategory } from '@/lib/category-actions';
+
 
 const formSchema = z.object({
   amount: z.coerce.number().min(0, 'O valor deve ser positivo ou zero.'),
@@ -51,6 +51,37 @@ type PropertyRentEditFormProps = {
   rent: PropertyRent;
   baseRentAmount?: number;
 };
+
+// This function now lives inside the component that uses it, or is passed as a prop
+async function getOrCreateCategory(
+    firestore: any,
+    userId: string,
+    categoryName: string,
+    categoryType: 'Income' | 'Expense',
+    collectionName: 'categories' | 'company_categories'
+  ) {
+    const categoryCollectionRef = collection(firestore, `users/${userId}/${collectionName}`);
+    const q = query(
+      categoryCollectionRef,
+      where('name', '==', categoryName),
+      where('type', '==', categoryType)
+    );
+
+    const querySnapshot = await getDocs(q);
+
+    if (!querySnapshot.empty) {
+      return querySnapshot.docs[0];
+    } else {
+      const newCategory: Omit<Category, 'id'> = {
+        name: categoryName,
+        type: categoryType,
+        userId: userId,
+      };
+      const docRef = await addDoc(categoryCollectionRef, newCategory);
+      return doc(firestore, `users/${userId}/${collectionName}`, docRef.id);
+    }
+}
+
 
 export function PropertyRentEditForm({ userId, propertyId, propertyName, rent, baseRentAmount }: PropertyRentEditFormProps) {
   const [open, setOpen] = useState(false);
@@ -107,26 +138,27 @@ export function PropertyRentEditForm({ userId, propertyId, propertyName, rent, b
         };
         await setDoc(rentRef, rentData);
 
-        // Step 2: Find the old income entry
-        const oldIncomeCollectionName = rent.destination === 'Personal' ? 'incomes' : 'company_incomes';
-        const oldIncomeQuery = query(collection(firestore, `users/${user.uid}/${oldIncomeCollectionName}`), where("propertyRentId", "==", rent.id));
-        const oldIncomeSnap = await getDocs(oldIncomeQuery);
+        // Step 2: Find and delete the old income entry, regardless of collection
+        const personalIncomeQuery = query(collection(firestore, `users/${user.uid}/incomes`), where("propertyRentId", "==", rent.id));
+        const companyIncomeQuery = query(collection(firestore, `users/${user.uid}/company_incomes`), where("propertyRentId", "==", rent.id));
         
-        // Delete the old income entry if it exists
-        if(!oldIncomeSnap.empty){
-            await deleteDoc(oldIncomeSnap.docs[0].ref);
-        }
+        const [personalSnap, companySnap] = await Promise.all([getDocs(personalIncomeQuery), getDocs(companyIncomeQuery)]);
+
+        if(!personalSnap.empty) await deleteDoc(personalSnap.docs[0].ref);
+        if(!companySnap.empty) await deleteDoc(companySnap.docs[0].ref);
+
 
         // Step 3: Get or create the new category and create the new income entry
         const newCategoryCollectionName = values.destination === 'Personal' ? 'categories' : 'company_categories';
-        const categoryRef = await getOrCreateCategory(firestore, user.uid, 'Receita de Aluguel', 'Income', newCategoryCollectionName);
+        const categoryDoc = await getOrCreateCategory(firestore, user.uid, 'Receita de Aluguel', 'Income', newCategoryCollectionName);
+        const categoryId = categoryDoc.id;
         
         const newIncomeCollectionName = values.destination === 'Personal' ? 'incomes' : 'company_incomes';
         const newIncomeRef = collection(firestore, `users/${user.uid}/${newIncomeCollectionName}`);
 
         const incomeData = {
             amount: finalAmount,
-            categoryId: categoryRef.id,
+            categoryId: categoryId,
             date: values.date.toISOString(),
             details: `Aluguel: ${propertyName}`,
             receiptMethod: `Depósito (${values.account})`,
@@ -139,12 +171,10 @@ export function PropertyRentEditForm({ userId, propertyId, propertyName, rent, b
         toast({ title: 'Sucesso!', description: 'Aluguel atualizado e receita ajustada.' });
         setOpen(false);
 
-    } catch (error) {
+    } catch (error: any) {
         console.error("Error updating rent and income:", error);
         toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível atualizar o aluguel e a receita. A operação foi revertida.' });
-        // NOTE: A full rollback for this complex operation would be complicated.
-        // The current implementation might leave the data in an inconsistent state if an error occurs after the first write.
-        // For a production app, a Cloud Function to handle this atomically would be better.
+        
         const permissionError = new FirestorePermissionError({
             path: `users/${user.uid}/properties/${propertyId}/rents/${rent.id}`,
             operation: 'write',
