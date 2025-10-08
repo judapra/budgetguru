@@ -9,7 +9,6 @@ export function Logo({ className }: { className?: string }) {
         alt="Budget Guru Logo" 
         width={40} 
         height={40}
-        className="text-primary"
       />
       <span className="font-headline text-xl font-bold">Budget Guru</span>
     </div>
