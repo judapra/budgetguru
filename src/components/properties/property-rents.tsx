@@ -8,7 +8,7 @@ import { PropertyRentForm } from './property-rent-form';
 import { format } from 'date-fns';
 import { type PropertyRent } from '@/lib/types';
 import { Button } from '@/components/ui/button';
-import { Trash2, Banknote, Landmark, Pencil } from 'lucide-react';
+import { Trash2, Banknote, Landmark, Pencil, Briefcase, CircleDollarSign, MessageSquareText } from 'lucide-react';
 import { PropertyRentEditForm } from './property-rent-edit-form';
 
 
@@ -70,21 +70,26 @@ export function PropertyRents({ propertyId, propertyName, userId, baseRentAmount
                 <ul className="space-y-2">
                 {rents.map((rent) => {
                     const finalAmount = (rent.amount || 0) + (rent.additions || 0) - (rent.discounts || 0);
+                    const DestinationIcon = rent.destination === 'Personal' ? CircleDollarSign : Briefcase;
                     return (
                         <li key={rent.id} className="flex justify-between items-start bg-muted/50 p-3 rounded-md">
                             <div className="flex-1 space-y-2">
                                 <div className='flex justify-between items-start'>
                                     <div>
-                                     <p className="text-sm font-medium">{rent.destination === 'Personal' ? 'Pessoal' : 'Empresa'}</p>
-                                     <p className="text-xs text-muted-foreground">Recebido em: {format(new Date(rent.date), 'dd/MM/yyyy')}</p>
+                                     <p className="text-sm font-semibold">{format(new Date(rent.date), 'MMMM \'de\' yyyy', { locale: require('date-fns/locale/pt-BR')})}</p>
+                                     <p className="text-xs text-muted-foreground capitalize">{new Date(rent.date).toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit' })}</p>
                                     </div>
                                     <p className="text-sm font-bold text-green-600">{formatCurrency(finalAmount)}</p>
                                 </div>
                                 
-                                <div className='text-xs text-muted-foreground space-y-1'>
+                                <div className='text-xs text-muted-foreground space-y-1.5 border-t border-border/50 pt-2'>
+                                    <div className="flex items-center gap-2">
+                                        <DestinationIcon className="h-3 w-3" />
+                                        <span>Destino: {rent.destination === 'Personal' ? 'Pessoal' : 'Empresa'}</span>
+                                    </div>
                                     <div className="flex items-center gap-2">
                                         <Landmark className="h-3 w-3" />
-                                        <span>Depósito em: {rent.account}</span>
+                                        <span>Depósito: {rent.account}</span>
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <Banknote className="h-3 w-3" />
@@ -94,9 +99,13 @@ export function PropertyRents({ propertyId, propertyName, userId, baseRentAmount
                                             {rent.discounts ? <span className="text-orange-500"> - {formatCurrency(rent.discounts)}</span> : ''}
                                         </span>
                                     </div>
+                                    {rent.details && (
+                                        <div className="flex items-start gap-2">
+                                            <MessageSquareText className="h-3 w-3 mt-0.5" />
+                                            <span className='italic'>{rent.details}</span>
+                                        </div>
+                                    )}
                                 </div>
-
-                                {rent.details && <p className="text-xs text-muted-foreground italic pt-1">{rent.details}</p>}
                                 
                             </div>
                             <div className="flex flex-col items-center justify-start ml-2">
