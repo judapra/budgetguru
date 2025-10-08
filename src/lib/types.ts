@@ -1,3 +1,4 @@
+
 export type Category = {
     id: string;
     name: string;
@@ -25,6 +26,7 @@ export type Category = {
     date: string;
     amount: number;
     details: string;
+    propertyExpenseId?: string;
 };
 
 export type Transaction = {
@@ -52,14 +54,18 @@ export type Transaction = {
     netRent: number;
     adminFee: number;
     status: 'Alugado' | 'Vazio';
+    tenantName?: string;
+    tenantPhone?: string;
   };
   
   export type PropertyExpense = {
     id: string;
     propertyId: string;
+    userId: string;
     date: string;
     description: string;
     amount: number;
+    destination: 'Personal' | 'Company';
   };
   
   export type PropertyRent = {

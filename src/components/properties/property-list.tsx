@@ -1,3 +1,4 @@
+
 'use client';
 import {
   Card,
@@ -17,7 +18,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import type { Property } from '@/lib/types';
 import { Button } from '@/components/ui/button';
-import { Trash2, Home, MapPin } from 'lucide-react';
+import { Trash2, Home, MapPin, User, Phone } from 'lucide-react';
 import { useFirestore } from '@/firebase';
 import { deleteDoc, doc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
@@ -84,7 +85,7 @@ export function PropertyList({ properties, userId }: PropertyListProps) {
                 </div>
                 <Badge 
                   className={cn(
-                    property.status === 'Alugado' ? 'bg-green-100 text-green-800 border-green-200' : 'bg-red-100 text-red-800 border-red-200'
+                    property.status === 'Alugado' ? 'bg-green-100 text-green-800 border-green-200' : 'bg-orange-100 text-orange-800 border-orange-200'
                   )}
                   variant={'outline'}
                 >
@@ -93,6 +94,22 @@ export function PropertyList({ properties, userId }: PropertyListProps) {
             </div>
           </CardHeader>
           <CardContent className="flex-grow space-y-4">
+             {property.status === 'Alugado' && (property.tenantName || property.tenantPhone) && (
+              <div className="text-xs text-muted-foreground space-y-1 border-b pb-4">
+                {property.tenantName && (
+                  <div className="flex items-center gap-2">
+                    <User className="h-3 w-3" />
+                    <span>{property.tenantName}</span>
+                  </div>
+                )}
+                {property.tenantPhone && (
+                  <div className="flex items-center gap-2">
+                    <Phone className="h-3 w-3" />
+                    <span>{property.tenantPhone}</span>
+                  </div>
+                )}
+              </div>
+            )}
             <div className="grid grid-cols-2 gap-4 text-sm">
                 <div className="space-y-1">
                     <p className="text-muted-foreground">Aluguel Bruto</p>
@@ -117,7 +134,7 @@ export function PropertyList({ properties, userId }: PropertyListProps) {
                 <AccordionItem value="expenses">
                     <AccordionTrigger>Ver Despesas</AccordionTrigger>
                     <AccordionContent>
-                        <PropertyExpenses propertyId={property.id} userId={userId} />
+                        <PropertyExpenses propertyId={property.id} propertyName={property.name} userId={userId} />
                     </AccordionContent>
                 </AccordionItem>
             </Accordion>

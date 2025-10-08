@@ -1,3 +1,4 @@
+
 'use client';
 import { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
@@ -39,6 +40,8 @@ const formSchema = z.object({
   status: z.enum(['Alugado', 'Vazio'], {
     required_error: 'Você precisa selecionar um status.',
   }),
+  tenantName: z.string().optional(),
+  tenantPhone: z.string().optional(),
 });
 
 type PropertyFormProps = {
@@ -62,8 +65,12 @@ export function PropertyForm({ userId, property, className }: PropertyFormProps)
       grossRent: 0,
       adminFee: 0,
       status: 'Vazio',
+      tenantName: '',
+      tenantPhone: '',
     },
   });
+
+  const watchStatus = form.watch('status');
 
   useEffect(() => {
     if (isEditing && property) {
@@ -73,6 +80,8 @@ export function PropertyForm({ userId, property, className }: PropertyFormProps)
         grossRent: property.grossRent,
         adminFee: property.adminFee,
         status: property.status,
+        tenantName: property.tenantName || '',
+        tenantPhone: property.tenantPhone || '',
       });
     } else {
       form.reset({
@@ -81,6 +90,8 @@ export function PropertyForm({ userId, property, className }: PropertyFormProps)
         grossRent: 0,
         adminFee: 0,
         status: 'Vazio',
+        tenantName: '',
+        tenantPhone: '',
       });
     }
   }, [property, isEditing, form, open]);
@@ -104,42 +115,29 @@ export function PropertyForm({ userId, property, className }: PropertyFormProps)
     try {
       if (isEditing) {
         const propertyDoc = doc(firestore, `users/${userId}/properties/${property.id}`);
-        setDoc(propertyDoc, propertyData)
-          .then(() => {
-            toast({
-              title: 'Sucesso!',
-              description: 'Seu imóvel foi atualizado.',
-            });
-            setOpen(false);
-          })
-          .catch(async (serverError) => {
-            const permissionError = new FirestorePermissionError({
-              path: propertyDoc.path,
-              operation: 'update',
-              requestResourceData: propertyData,
-            });
-            errorEmitter.emit('permission-error', permissionError);
-          });
+        await setDoc(propertyDoc, propertyData, { merge: true });
+        toast({
+            title: 'Sucesso!',
+            description: 'Seu imóvel foi atualizado.',
+        });
+        setOpen(false);
       } else {
         const propertiesCollection = collection(firestore, `users/${userId}/properties`);
-        addDoc(propertiesCollection, propertyData)
-          .then(() => {
-            toast({
-              title: 'Sucesso!',
-              description: 'Seu imóvel foi cadastrado.',
-            });
-            form.reset();
-            setOpen(false);
-          })
-          .catch(async (serverError) => {
-            const permissionError = new FirestorePermissionError({
-              path: propertiesCollection.path,
-              operation: 'create',
-              requestResourceData: propertyData,
-            });
-            errorEmitter.emit('permission-error', permissionError);
-          });
+        await addDoc(propertiesCollection, propertyData);
+        toast({
+            title: 'Sucesso!',
+            description: 'Seu imóvel foi cadastrado.',
+        });
+        form.reset();
+        setOpen(false);
       }
+    } catch (serverError) {
+        const permissionError = new FirestorePermissionError({
+          path: isEditing ? `users/${userId}/properties/${property!.id}` : `users/${userId}/properties`,
+          operation: isEditing ? 'update' : 'create',
+          requestResourceData: propertyData,
+        });
+        errorEmitter.emit('permission-error', permissionError);
     } finally {
       setIsSubmitting(false);
     }
@@ -255,6 +253,36 @@ export function PropertyForm({ userId, property, className }: PropertyFormProps)
                 </FormItem>
               )}
             />
+            {watchStatus === 'Alugado' && (
+              <>
+                <FormField
+                  control={form.control}
+                  name="tenantName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nome do Inquilino (Opcional)</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Nome completo do inquilino" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="tenantPhone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Telefone do Inquilino (Opcional)</FormLabel>
+                      <FormControl>
+                        <Input placeholder="(99) 99999-9999" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </>
+            )}
             <div className="md:col-span-2">
               <Button type="submit" disabled={isSubmitting} className="w-full font-headline">
                 {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

@@ -1,3 +1,4 @@
+
 'use client';
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
@@ -35,7 +36,7 @@ const formSchema = z.object({
   amount: z.coerce.number().min(0, 'O valor deve ser positivo ou zero.'),
   details: z.string().optional(),
   date: z.date({ required_error: 'A data é obrigatória.' }),
-  account: z.string().min(2, 'A conta é obrigatória.'),
+  account: z.string().optional(),
   discounts: z.coerce.number().optional().default(0),
   additions: z.coerce.number().optional().default(0),
   destination: z.enum(['Personal', 'Company'], {
@@ -147,7 +148,7 @@ export function PropertyRentForm({ propertyId, propertyName, rent, baseRentAmoun
             propertyId,
             date: values.date.toISOString(),
             amount: values.amount,
-            account: values.account,
+            account: values.account || '',
             discounts: values.discounts,
             additions: values.additions,
             details: values.details,
@@ -166,7 +167,7 @@ export function PropertyRentForm({ propertyId, propertyName, rent, baseRentAmoun
             categoryId: categoryId,
             date: values.date.toISOString(),
             details: `Aluguel: ${propertyName}`,
-            receiptMethod: `Depósito (${values.account})`,
+            receiptMethod: `Depósito (${values.account || 'Não informada'})`,
             userId: user.uid,
             propertyRentId: newRentId,
         };
@@ -277,7 +278,7 @@ export function PropertyRentForm({ propertyId, propertyName, rent, baseRentAmoun
               name="account"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Conta para Depósito</FormLabel>
+                  <FormLabel>Conta para Depósito (Opcional)</FormLabel>
                   <FormControl>
                     <Input placeholder="Ex: Banco do Brasil, C/C 1234-5" {...field} />
                   </FormControl>
