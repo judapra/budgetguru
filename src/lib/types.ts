@@ -27,6 +27,7 @@ export type Category = {
     amount: number;
     details: string;
     propertyExpenseId?: string;
+    installments?: string;
 };
 
 export type Transaction = {

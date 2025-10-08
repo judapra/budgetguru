@@ -43,6 +43,7 @@ const formSchema = z.object({
   categoryId: z.string().min(1, 'A categoria é obrigatória.'),
   paymentMethod: z.string().min(2, 'O método é obrigatório.'),
   date: z.date({ required_error: 'A data é obrigatória.' }),
+  installments: z.string().optional(),
 });
 
 type ExpenseFormProps = {
@@ -66,6 +67,7 @@ export function ExpenseForm({ categories, userId, expense, variant = 'default', 
       amount: 0,
       details: '',
       paymentMethod: '',
+      installments: '',
     },
   });
 
@@ -77,6 +79,7 @@ export function ExpenseForm({ categories, userId, expense, variant = 'default', 
             categoryId: expense.categoryId,
             paymentMethod: expense.paymentMethod,
             date: new Date(expense.date),
+            installments: expense.installments || '',
         });
     } else {
         form.reset({
@@ -85,6 +88,7 @@ export function ExpenseForm({ categories, userId, expense, variant = 'default', 
             paymentMethod: '',
             categoryId: '',
             date: undefined,
+            installments: '',
         });
     }
   }, [expense, isEditing, form, open]);
@@ -157,25 +161,40 @@ export function ExpenseForm({ categories, userId, expense, variant = 'default', 
             </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="font-headline">{isEditing ? 'Editar Despesa' : 'Cadastrar Nova Despesa'}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="amount"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Valor</FormLabel>
-                  <FormControl>
-                    <Input type="number" placeholder="R$ 0,00" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="grid grid-cols-2 gap-4">
+                <FormField
+                control={form.control}
+                name="amount"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Valor</FormLabel>
+                    <FormControl>
+                        <Input type="number" placeholder="R$ 0,00" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                    </FormItem>
+                )}
+                />
+                <FormField
+                control={form.control}
+                name="date"
+                render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                    <FormLabel>Data da Despesa</FormLabel>
+                    <FormControl>
+                        <InputDatePicker field={field} />
+                    </FormControl>
+                    <FormMessage />
+                    </FormItem>
+                )}
+                />
+            </div>
             <FormField
               control={form.control}
               name="details"
@@ -189,51 +208,53 @@ export function ExpenseForm({ categories, userId, expense, variant = 'default', 
                 </FormItem>
               )}
             />
-             <FormField
-              control={form.control}
-              name="paymentMethod"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Método de Pagamento</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Ex: Cartão corporativo, Boleto" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="categoryId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Categoria</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+            <div className="grid grid-cols-2 gap-4">
+                <FormField
+                control={form.control}
+                name="categoryId"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Categoria</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                        <SelectTrigger>
+                            <SelectValue placeholder="Selecione" />
+                        </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                        {categories.map((category) => (
+                            <SelectItem key={category.id} value={category.id}>
+                            {category.name}
+                            </SelectItem>
+                        ))}
+                        </SelectContent>
+                    </Select>
+                    <FormMessage />
+                    </FormItem>
+                )}
+                />
+                <FormField
+                control={form.control}
+                name="paymentMethod"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Método</FormLabel>
                     <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione uma categoria" />
-                      </SelectTrigger>
+                        <Input placeholder="Ex: Cartão corporativo" {...field} />
                     </FormControl>
-                    <SelectContent>
-                      {categories.map((category) => (
-                        <SelectItem key={category.id} value={category.id}>
-                          {category.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                    <FormMessage />
+                    </FormItem>
+                )}
+                />
+            </div>
             <FormField
               control={form.control}
-              name="date"
+              name="installments"
               render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel>Data da Despesa</FormLabel>
+                <FormItem>
+                  <FormLabel>Parcelas (Opcional)</FormLabel>
                   <FormControl>
-                    <InputDatePicker field={field} />
+                    <Input placeholder="Ex: 1/12, 2/3" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
