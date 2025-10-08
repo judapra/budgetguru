@@ -36,8 +36,10 @@ export function UpdateEmailForm() {
     },
   });
 
+  // Esta é a primeira versão da função que implementava a ordem correta
   async function onSubmit(values: z.infer<typeof emailSchema>) {
     if (!user || !auth?.currentUser || !firestore || !user.email) return;
+
     if (user.email === values.newEmail) {
         toast({
             variant: 'destructive',
@@ -78,8 +80,7 @@ export function UpdateEmailForm() {
       } else if (error.code === 'auth/requires-recent-login') {
         description = 'Esta operação é sensível e requer autenticação recente. Faça login novamente antes de tentar alterar o e-mail.';
       } else {
-        // Handle potential Firestore error
-         const permissionError = new FirestorePermissionError({
+        const permissionError = new FirestorePermissionError({
             path: `users/${user.uid}`,
             operation: 'update',
             requestResourceData: { email: values.newEmail },
@@ -103,8 +104,8 @@ export function UpdateEmailForm() {
       <CardHeader>
         <CardTitle className='font-headline'>Alterar E-mail</CardTitle>
         <CardDescription>
-            Seu e-mail de login atual é <span className="font-semibold text-foreground">{user?.email}</span>. 
-            Para alterar, forneça o novo e-mail e sua senha atual.
+          Seu e-mail de login atual é <span className="font-semibold text-foreground">{user?.email}</span>. 
+          Para alterar, forneça o novo e-mail e sua senha atual.
         </CardDescription>
       </CardHeader>
       <CardContent>

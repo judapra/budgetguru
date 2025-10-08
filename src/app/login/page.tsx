@@ -22,7 +22,7 @@ import { Label } from '@/components/ui/label';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
-import { Logo } from '@/components/logo';
+import { Logo } from '@/components/logo'; // ou NewLogo
 
 export default function LoginPage() {
   const { user, auth, isUserLoading } = useUser();
@@ -45,7 +45,6 @@ export default function LoginPage() {
     setIsSigningIn(true);
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      // O useEffect cuidará do redirecionamento
     } catch (error: any) {
       console.error(error);
       toast({
@@ -115,7 +114,8 @@ export default function LoginPage() {
     <div className="flex items-center justify-center min-h-screen bg-background">
       <Card className="w-full max-w-sm">
         <CardHeader className="items-center space-y-4">
-          <Logo large />
+          {/* A única alteração real está aqui: */}
+          <Logo className="w-full h-auto mb-4" />
           <div>
             <CardTitle className="text-2xl font-headline text-center">Login</CardTitle>
             <CardDescription className="text-center">

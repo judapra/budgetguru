@@ -21,7 +21,7 @@ import { Label } from '@/components/ui/label';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
-import { Logo } from '@/components/logo';
+import { Logo } from '@/components/logo'; // Lembre-se de usar 'Logo' ou 'NewLogo' conforme o nome final
 
 export default function SignupPage() {
   const { user, auth, isUserLoading } = useUser();
@@ -53,7 +53,6 @@ export default function SignupPage() {
     setIsSigningUp(true);
     try {
       await createUserWithEmailAndPassword(auth, email, password);
-      // O useEffect cuidará do redirecionamento
     } catch (error: any) {
       console.error(error);
       let description = 'Ocorreu um erro ao criar sua conta. Tente novamente.';
@@ -102,7 +101,8 @@ export default function SignupPage() {
     <div className="flex items-center justify-center min-h-screen bg-background">
       <Card className="w-full max-w-sm">
         <CardHeader className="items-center space-y-4">
-          <Logo large />
+          {/* --- A ÚNICA ALTERAÇÃO ESTÁ AQUI --- */}
+          <Logo className="w-full h-auto mb-4" />
           <div>
             <CardTitle className="text-2xl font-headline text-center">Cadastro</CardTitle>
             <CardDescription className="text-center">
