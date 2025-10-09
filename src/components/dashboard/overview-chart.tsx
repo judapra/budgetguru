@@ -48,7 +48,7 @@ export function OverviewChart({ data, title, description, actions }: OverviewCha
         </div>
       </CardHeader>
       <CardContent className="flex-1">
-        <ChartContainer config={chartConfig} className="min-h-[300px] h-full w-full">
+        <ChartContainer config={chartConfig} className="min-h-[250px] w-full">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={data}>
               <CartesianGrid vertical={false} />
