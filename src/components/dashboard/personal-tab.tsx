@@ -99,7 +99,7 @@ export function PersonalTab() {
     };
 
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
             <div className="lg:col-span-2">
                 <OverviewChart
                     data={chartData}

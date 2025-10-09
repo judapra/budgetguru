@@ -74,8 +74,8 @@ export function RealEstateChart({ data }: RealEstateChartProps) {
         </div>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
-          <ResponsiveContainer width="100%" height={350}>
+        <ChartContainer config={chartConfig} className="w-full">
+          <ResponsiveContainer width="100%" height={350} className="max-h-[450px]">
             <BarChart data={data}>
               <CartesianGrid vertical={false} />
               <XAxis
