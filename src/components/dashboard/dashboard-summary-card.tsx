@@ -27,12 +27,15 @@ const calculatePercentageChange = (current: number, previous: number) => {
     if (current === 0 && previous > 0) {
         return -100;
     }
+    if (current === 0 && previous === 0) {
+        return 0;
+    }
     return ((current - previous) / previous) * 100;
 };
 
 const SummaryStat = ({ title, value, percentage, isIncome }: { title: string, value: number, percentage: number, isIncome: boolean}) => {
     const isPositive = percentage >= 0;
-    const isNeutral = !isFinite(percentage);
+    const isNeutral = !isFinite(percentage) || percentage === 0;
     const Icon = isNeutral ? Minus : (isPositive ? ArrowUp : ArrowDown);
     const color = isNeutral ? 'text-muted-foreground' : (isPositive ? (isIncome ? 'text-green-500' : 'text-red-500') : (isIncome ? 'text-red-500' : 'text-green-500'));
 
@@ -42,7 +45,7 @@ const SummaryStat = ({ title, value, percentage, isIncome }: { title: string, va
             <p className="text-2xl font-bold">{value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
             <div className={cn("flex items-center text-xs", color)}>
                 <Icon className="h-3 w-3 mr-1" />
-                {isNeutral ? 'Sem dados do mês anterior' : `${percentage.toFixed(2)}% vs mês passado`}
+                {isNeutral && value === 0 ? 'Sem dados para comparação' : `${percentage.toFixed(2)}% vs mês passado`}
             </div>
         </div>
     );
@@ -78,7 +81,7 @@ export function DashboardSummaryCard({ incomes, expenses }: DashboardSummaryCard
     }, [incomes, expenses]);
 
     return (
-        <Card className="h-full flex flex-col">
+        <Card>
             <CardHeader>
                 <CardTitle className="font-headline">Resumo do Mês</CardTitle>
                 <CardDescription>Sua performance financeira neste mês em comparação com o anterior.</CardDescription>
