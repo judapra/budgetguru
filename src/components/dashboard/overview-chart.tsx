@@ -40,7 +40,7 @@ export function OverviewChart({ data, title, description, actions }: OverviewCha
     <Card className="h-full flex flex-col">
       <CardHeader>
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
-          <div className="flex-1">
+          <div>
             <CardTitle className="font-headline">{title}</CardTitle>
             <CardDescription>{description}</CardDescription>
           </div>
@@ -48,7 +48,7 @@ export function OverviewChart({ data, title, description, actions }: OverviewCha
         </div>
       </CardHeader>
       <CardContent className="flex-1">
-        <ChartContainer config={chartConfig} className="min-h-[200px] h-full w-full">
+        <ChartContainer config={chartConfig} className="min-h-[300px] h-full w-full">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={data}>
               <CartesianGrid vertical={false} />
