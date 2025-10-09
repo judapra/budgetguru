@@ -89,7 +89,7 @@ export function ExpensesTable({ expenses, categories }: ExpensesTableProps) {
                 <TableCell>{categoryMap.get(expense.categoryId) || 'N/A'}</TableCell>
                 <TableCell>{expense.paymentMethod}</TableCell>
                 <TableCell>
-                    {expense.installments && <Badge variant="outline">{expense.installments}</Badge>}
+                  {expense.installments && <Badge variant="outline">{expense.installments}</Badge>}
                 </TableCell>
                 <TableCell className="text-right text-red-500">
                   - {expense.amount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}

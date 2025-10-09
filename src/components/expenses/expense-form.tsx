@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useFirestore } from '@/firebase';
-import { addDoc, collection, doc, setDoc } from 'firebase/firestore';
+import { addDoc, collection, doc, setDoc, writeBatch } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -36,6 +36,8 @@ import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { InputDatePicker } from '../ui/input-date-picker';
 import { cn } from '@/lib/utils';
+import { Checkbox } from '../ui/checkbox';
+import { addMonths } from 'date-fns';
 
 const formSchema = z.object({
   amount: z.coerce.number().min(0.01, 'O valor deve ser maior que zero.'),
@@ -43,7 +45,8 @@ const formSchema = z.object({
   categoryId: z.string().min(1, 'A categoria é obrigatória.'),
   paymentMethod: z.string().min(2, 'O método é obrigatório.'),
   date: z.date({ required_error: 'A data é obrigatória.' }),
-  installments: z.string().optional(),
+  isRecurring: z.boolean().default(false),
+  installments: z.coerce.number().optional(),
 });
 
 type ExpenseFormProps = {
@@ -67,9 +70,11 @@ export function ExpenseForm({ categories, userId, expense, variant = 'default', 
       amount: 0,
       details: '',
       paymentMethod: '',
-      installments: '',
+      isRecurring: false,
     },
   });
+
+  const isRecurring = form.watch('isRecurring');
 
   useEffect(() => {
     if (isEditing && expense) {
@@ -79,7 +84,8 @@ export function ExpenseForm({ categories, userId, expense, variant = 'default', 
             categoryId: expense.categoryId,
             paymentMethod: expense.paymentMethod,
             date: new Date(expense.date),
-            installments: expense.installments || '',
+            isRecurring: false, // Editing recurring series is not supported
+            installments: undefined,
         });
     } else {
         form.reset({
@@ -87,8 +93,9 @@ export function ExpenseForm({ categories, userId, expense, variant = 'default', 
             details: '',
             paymentMethod: '',
             categoryId: '',
-            date: undefined,
-            installments: '',
+            date: new Date(),
+            isRecurring: false,
+            installments: undefined,
         });
     }
   }, [expense, isEditing, form, open]);
@@ -96,52 +103,75 @@ export function ExpenseForm({ categories, userId, expense, variant = 'default', 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (!firestore) return;
     setIsSubmitting(true);
-
-    const expenseData = {
-      ...values,
-      date: values.date.toISOString(),
-      userId,
-    };
-
+  
     try {
-        if (isEditing) {
-            const expenseDoc = doc(firestore, `users/${userId}/expenses/${expense.id}`);
-            setDoc(expenseDoc, expenseData)
-              .then(() => {
-                toast({
-                  title: 'Sucesso!',
-                  description: 'Sua despesa foi atualizada.',
-                });
-                setOpen(false);
-              })
-              .catch(async (serverError) => {
-                const permissionError = new FirestorePermissionError({
-                  path: expenseDoc.path,
-                  operation: 'update',
-                  requestResourceData: expenseData,
-                });
-                errorEmitter.emit('permission-error', permissionError);
-              });
-        } else {
-            const expensesCollection = collection(firestore, `users/${userId}/expenses`);
-            addDoc(expensesCollection, expenseData)
-                .then(() => {
-                    toast({
-                        title: 'Sucesso!',
-                        description: 'Sua despesa foi cadastrada.',
-                    });
-                    form.reset();
-                    setOpen(false);
-                })
-                .catch(async (serverError) => {
-                    const permissionError = new FirestorePermissionError({
-                        path: expensesCollection.path,
-                        operation: 'create',
-                        requestResourceData: expenseData,
-                    });
-                    errorEmitter.emit('permission-error', permissionError);
-                });
+      if (isEditing && expense) {
+        // --- EDITING LOGIC (SINGLE EXPENSE) ---
+        const expenseDoc = doc(firestore, `users/${userId}/expenses/${expense.id}`);
+        const expenseData = {
+          ...values,
+          date: values.date.toISOString(),
+          userId,
+        };
+        await setDoc(expenseDoc, expenseData);
+        toast({
+          title: 'Sucesso!',
+          description: 'Sua despesa foi atualizada.',
+        });
+        setOpen(false);
+  
+      } else if (values.isRecurring && values.installments && values.installments > 1) {
+        // --- RECURRING CREATION LOGIC ---
+        const batch = writeBatch(firestore);
+        const totalInstallments = values.installments;
+  
+        for (let i = 0; i < totalInstallments; i++) {
+          const installmentDate = addMonths(values.date, i);
+          const expenseRef = doc(collection(firestore, `users/${userId}/expenses`));
+          
+          const expenseData: Omit<Expense, 'id'> = {
+            userId,
+            amount: values.amount,
+            categoryId: values.categoryId,
+            date: installmentDate.toISOString(),
+            details: values.details,
+            paymentMethod: values.paymentMethod,
+            installments: `${i + 1}/${totalInstallments}`,
+          };
+          batch.set(expenseRef, expenseData);
         }
+        await batch.commit();
+        toast({
+          title: 'Sucesso!',
+          description: `${totalInstallments} despesas recorrentes foram cadastradas.`,
+        });
+        setOpen(false);
+  
+      } else {
+        // --- SINGLE CREATION LOGIC ---
+        const expensesCollection = collection(firestore, `users/${userId}/expenses`);
+        const expenseData = {
+          ...values,
+          date: values.date.toISOString(),
+          userId,
+          installments: values.installments ? `1/${values.installments}` : undefined
+        };
+        await addDoc(expensesCollection, expenseData);
+        toast({
+          title: 'Sucesso!',
+          description: 'Sua despesa foi cadastrada.',
+        });
+        setOpen(false);
+      }
+      form.reset();
+    } catch (serverError) {
+      console.error("Error submitting expense:", serverError);
+      const permissionError = new FirestorePermissionError({
+        path: isEditing ? `users/${userId}/expenses/${expense!.id}` : `users/${userId}/expenses`,
+        operation: isEditing ? 'update' : 'create',
+        requestResourceData: values,
+      });
+      errorEmitter.emit('permission-error', permissionError);
     } finally {
       setIsSubmitting(false);
     }
@@ -186,7 +216,7 @@ export function ExpenseForm({ categories, userId, expense, variant = 'default', 
                     name="date"
                     render={({ field }) => (
                         <FormItem className="flex flex-col">
-                        <FormLabel>Data da Despesa</FormLabel>
+                        <FormLabel>Data da {isRecurring ? '1ª Despesa' : 'Despesa'}</FormLabel>
                         <FormControl>
                             <InputDatePicker field={field} />
                         </FormControl>
@@ -247,19 +277,48 @@ export function ExpenseForm({ categories, userId, expense, variant = 'default', 
                 )}
                 />
             </div>
-            <FormField
-              control={form.control}
-              name="installments"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Parcelas (Opcional)</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Ex: 1/12, 2/3" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+
+            {!isEditing && (
+              <>
+                <FormField
+                  control={form.control}
+                  name="isRecurring"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel>
+                          Despesa Recorrente
+                        </FormLabel>
+                        <FormMessage />
+                      </div>
+                    </FormItem>
+                  )}
+                />
+
+                {isRecurring && (
+                  <FormField
+                    control={form.control}
+                    name="installments"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Número de Meses</FormLabel>
+                        <FormControl>
+                          <Input type="number" placeholder="Ex: 12" {...field} min={2} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+              </>
+            )}
+            
             <Button type="submit" disabled={isSubmitting} className="w-full font-headline">
               {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {isEditing ? 'Salvar Alterações' : 'Salvar Despesa'}
