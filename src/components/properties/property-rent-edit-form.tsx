@@ -221,7 +221,7 @@ export function PropertyRentEditForm({ userId, propertyId, propertyName, rent, b
               render={({ field }) => (
                 <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
                   <div className="space-y-0.5">
-                    <FormLabel>Reajuste de Contrato?</FormLabel>
+                    <FormLabel>É um Reajuste de Contrato?</FormLabel>
                     <FormMessage />
                   </div>
                   <FormControl>
