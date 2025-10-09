@@ -28,7 +28,7 @@ export type Category = {
     amount: number;
     details: string;
     propertyExpenseId?: string;
-    installments?: string; // e.g., "1/12", "2/3"
+    installment?: string; // e.g., "1/12", "2/3"
 };
 
 export type Transaction = {
@@ -69,6 +69,17 @@ export type Transaction = {
     amount: number;
     destination: 'Personal' | 'Company';
   };
+
+  export type PropertyRecurringExpense = {
+    id: string;
+    propertyId: string;
+    userId: string;
+    startDate: string;
+    endDate: string;
+    description: string;
+    amount: number;
+    destination: 'Personal' | 'Company';
+  }
   
   export type PropertyRent = {
     id: string;

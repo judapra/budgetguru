@@ -37,7 +37,8 @@
         "paymentMethod": { "type": "string", "description": "The method of payment used (e.g., credit card, cash)." },
         "date": { "type": "string", "description": "The date of the expense.", "format": "date-time" },
         "amount": { "type": "number", "description": "The amount of the expense." },
-        "details": { "type": "string", "description": "Detailed description of the expense." }
+        "details": { "type": "string", "description": "Detailed description of the expense." },
+        "installment": { "type": "string", "description": "Indicates the installment number of a larger purchase (e.g. '1/12')." }
       },
       "required": ["id", "userId", "categoryId", "paymentMethod", "date", "amount", "details"]
     },
@@ -102,6 +103,23 @@
         "amount": { "type": "number", "description": "The amount of the expense." }
       },
       "required": ["id", "propertyId", "date", "description", "amount"]
+    },
+    "PropertyRecurringExpense": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "PropertyRecurringExpense",
+      "type": "object",
+      "description": "Represents a template for a recurring expense on a property.",
+      "properties": {
+        "id": { "type": "string", "description": "Unique identifier for the PropertyRecurringExpense entity." },
+        "propertyId": { "type": "string", "description": "Reference to Property." },
+        "userId": { "type": "string", "description": "Reference to User." },
+        "startDate": { "type": "string", "description": "The start date of the recurrence.", "format": "date-time" },
+        "endDate": { "type": "string", "description": "The end date of the recurrence.", "format": "date-time" },
+        "description": { "type": "string", "description": "Description of the recurring expense." },
+        "amount": { "type": "number", "description": "The monthly amount of the expense." },
+        "destination": { "type": "string", "description": "Where the expense should be recorded ('Personal' or 'Company').", "enum": ["Personal", "Company"] }
+      },
+      "required": ["id", "propertyId", "userId", "startDate", "endDate", "description", "amount", "destination"]
     },
     "PropertyRent": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -222,6 +240,16 @@
         "path": "/users/{userId}/properties/{propertyId}/expenses/{propertyExpenseId}",
         "schema": { "$ref": "#/entities/PropertyExpense" },
         "description": "Stores expenses related to a specific property.",
+        "permissions": {
+          "list": "request.auth.uid == userId",
+          "read": "request.auth.uid == userId",
+          "write": "request.auth.uid == userId"
+        }
+      },
+      {
+        "path": "/users/{userId}/properties/{propertyId}/recurring_expenses/{recurringExpenseId}",
+        "schema": { "$ref": "#/entities/PropertyRecurringExpense" },
+        "description": "Stores templates for recurring expenses on a specific property.",
         "permissions": {
           "list": "request.auth.uid == userId",
           "read": "request.auth.uid == userId",

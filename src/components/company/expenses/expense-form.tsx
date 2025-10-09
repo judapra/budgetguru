@@ -45,7 +45,7 @@ const formSchema = z.object({
   categoryId: z.string().min(1, 'A categoria é obrigatória.'),
   paymentMethod: z.string().min(2, 'O método é obrigatório.'),
   date: z.date({ required_error: 'A data é obrigatória.' }),
-  isRecurring: z.boolean().default(false),
+  isInstallment: z.boolean().default(false),
   installments: z.coerce.number().optional(),
 });
 
@@ -70,11 +70,11 @@ export function ExpenseForm({ categories, userId, expense, variant = 'default', 
       amount: 0,
       details: '',
       paymentMethod: '',
-      isRecurring: false,
+      isInstallment: false,
     },
   });
 
-  const isRecurring = form.watch('isRecurring');
+  const isInstallment = form.watch('isInstallment');
 
   useEffect(() => {
     if (isEditing && expense) {
@@ -84,7 +84,7 @@ export function ExpenseForm({ categories, userId, expense, variant = 'default', 
             categoryId: expense.categoryId,
             paymentMethod: expense.paymentMethod,
             date: new Date(expense.date),
-            isRecurring: false,
+            isInstallment: false,
             installments: undefined,
         });
     } else {
@@ -94,7 +94,7 @@ export function ExpenseForm({ categories, userId, expense, variant = 'default', 
             paymentMethod: '',
             categoryId: '',
             date: new Date(),
-            isRecurring: false,
+            isInstallment: false,
             installments: undefined,
         });
     }
@@ -113,7 +113,7 @@ export function ExpenseForm({ categories, userId, expense, variant = 'default', 
             toast({ title: 'Sucesso!', description: 'Sua despesa foi atualizada.' });
             setOpen(false);
 
-        } else if (values.isRecurring && values.installments && values.installments > 1) {
+        } else if (values.isInstallment && values.installments && values.installments > 1) {
             // --- RECURRING CREATION LOGIC ---
             const batch = writeBatch(firestore);
             const totalInstallments = values.installments;
@@ -129,7 +129,7 @@ export function ExpenseForm({ categories, userId, expense, variant = 'default', 
                     date: installmentDate.toISOString(),
                     details: values.details,
                     paymentMethod: values.paymentMethod,
-                    installments: `${i + 1}/${totalInstallments}`,
+                    installment: `${i + 1}/${totalInstallments}`,
                 };
                 batch.set(expenseRef, expenseData);
             }
@@ -144,7 +144,7 @@ export function ExpenseForm({ categories, userId, expense, variant = 'default', 
                 ...values,
                 date: values.date.toISOString(),
                 userId,
-                installments: values.isRecurring && values.installments ? `1/${values.installments}` : undefined
+                installment: values.isInstallment && values.installments ? `1/${values.installments}` : undefined
             };
             await addDoc(expensesCollection, expenseData);
             toast({ title: 'Sucesso!', description: 'Sua despesa foi cadastrada.' });
@@ -204,7 +204,7 @@ export function ExpenseForm({ categories, userId, expense, variant = 'default', 
                 name="date"
                 render={({ field }) => (
                     <FormItem className="flex flex-col">
-                    <FormLabel>Data da {isRecurring ? '1ª Parcela' : 'Despesa'}</FormLabel>
+                    <FormLabel>Data da {isInstallment ? '1ª Parcela' : 'Despesa'}</FormLabel>
                     <FormControl>
                         <InputDatePicker field={field} />
                     </FormControl>
@@ -269,7 +269,7 @@ export function ExpenseForm({ categories, userId, expense, variant = 'default', 
               <>
                 <FormField
                   control={form.control}
-                  name="isRecurring"
+                  name="isInstallment"
                   render={({ field }) => (
                     <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                       <FormControl>
@@ -288,7 +288,7 @@ export function ExpenseForm({ categories, userId, expense, variant = 'default', 
                   )}
                 />
 
-                {isRecurring && (
+                {isInstallment && (
                   <FormField
                     control={form.control}
                     name="installments"
