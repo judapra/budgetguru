@@ -82,7 +82,7 @@ export function PersonalTab() {
 
     if (isLoading) {
         return (
-            <div className="flex justify-center items-center h-64">
+            <div className="flex justify-center items-center h-64 col-span-3">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
         );
@@ -99,7 +99,7 @@ export function PersonalTab() {
     };
 
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <>
             <div className="lg:col-span-2">
                 <OverviewChart
                     data={chartData}
@@ -111,6 +111,6 @@ export function PersonalTab() {
             <div className="lg:col-span-1">
                 <DashboardSummaryCard incomes={incomes || []} expenses={expenses || []} />
             </div>
-        </div>
+        </>
     );
 }

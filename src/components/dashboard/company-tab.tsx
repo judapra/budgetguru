@@ -90,7 +90,7 @@ function CompanyForm({ userId, companyId }: { userId: string, companyId: string 
     };
 
     return (
-        <Card className="max-w-2xl mx-auto">
+        <Card className="max-w-2xl mx-auto col-span-3">
             <CardHeader>
                 <CardTitle className="font-headline">Cadastre sua Empresa</CardTitle>
                 <CardDescription>Para começar a gerenciar as finanças da sua empresa, primeiro informe o nome dela.</CardDescription>
@@ -170,7 +170,7 @@ export function CompanyTab() {
 
     if (isLoading) {
         return (
-            <div className="flex justify-center items-center h-64">
+            <div className="flex justify-center items-center h-64 col-span-3">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
         );
@@ -194,7 +194,7 @@ export function CompanyTab() {
 
     if (!hasData) {
         return (
-            <div className="text-center p-8 border rounded-lg max-w-2xl mx-auto">
+            <div className="text-center p-8 border rounded-lg max-w-2xl mx-auto col-span-3">
                 <h2 className="text-xl font-bold font-headline mb-2">Comece a Gerenciar as Finanças de {company.name}</h2>
                 <p className="text-muted-foreground mb-4">Cadastre suas receitas e despesas da empresa para ver seu dashboard financeiro.</p>
                 <div className='flex gap-4 justify-center'>
@@ -216,7 +216,7 @@ export function CompanyTab() {
     }
 
     return (
-         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <>
             <div className="lg:col-span-2">
                 <OverviewChart
                     data={chartData}
@@ -228,6 +228,6 @@ export function CompanyTab() {
             <div className="lg:col-span-1">
                 <DashboardSummaryCard incomes={incomes || []} expenses={expenses || []} />
             </div>
-        </div>
+        </>
     );
 }
