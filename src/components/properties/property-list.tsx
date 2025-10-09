@@ -19,9 +19,9 @@ import {
 import { Badge } from '@/components/ui/badge';
 import type { Property } from '@/lib/types';
 import { Button } from '@/components/ui/button';
-import { Trash2, Home, MapPin, User, Phone } from 'lucide-react';
+import { Trash2, Home, MapPin, User, Phone, ToggleLeft, ToggleRight } from 'lucide-react';
 import { useFirestore } from '@/firebase';
-import { deleteDoc, doc } from 'firebase/firestore';
+import { deleteDoc, doc, setDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
@@ -60,6 +60,28 @@ export function PropertyList({ properties, userId }: PropertyListProps) {
       });
   };
 
+  const handleStatusToggle = (property: Property) => {
+    if (!firestore) return;
+    const newStatus = property.status === 'Alugado' ? 'Vazio' : 'Alugado';
+    const propertyDoc = doc(firestore, `users/${userId}/properties/${property.id}`);
+
+    setDoc(propertyDoc, { status: newStatus }, { merge: true })
+      .then(() => {
+        toast({
+          title: "Status Atualizado!",
+          description: `O imóvel "${property.name}" foi marcado como ${newStatus.toLowerCase()}.`
+        });
+      })
+      .catch((serverError) => {
+         const permissionError = new FirestorePermissionError({
+          path: propertyDoc.path,
+          operation: 'update',
+          requestResourceData: { status: newStatus },
+        });
+        errorEmitter.emit('permission-error', permissionError);
+      });
+  };
+
   if (properties.length === 0) {
     return (
       <div className="text-center p-8 border-2 border-dashed rounded-lg">
@@ -74,9 +96,7 @@ export function PropertyList({ properties, userId }: PropertyListProps) {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {properties.map((property) => {
-        const status = property.tenantName ? 'Alugado' : 'Vazio';
-        return (
+      {properties.map((property) => (
             <Card key={property.id} className="flex flex-col">
             <CardHeader>
                 <div className="flex justify-between items-start">
@@ -88,16 +108,16 @@ export function PropertyList({ properties, userId }: PropertyListProps) {
                     </div>
                     <Badge 
                     className={cn(
-                        status === 'Alugado' ? 'bg-green-100 text-green-800 border-green-200' : 'bg-orange-100 text-orange-800 border-orange-200'
+                        property.status === 'Alugado' ? 'bg-green-100 text-green-800 border-green-200' : 'bg-orange-100 text-orange-800 border-orange-200'
                     )}
                     variant={'outline'}
                     >
-                        {status}
+                        {property.status}
                     </Badge>
                 </div>
             </CardHeader>
             <CardContent className="flex-grow space-y-4">
-                {status === 'Alugado' && (property.tenantName || property.tenantPhone) && (
+                {(property.tenantName || property.tenantPhone) && (
                 <div className="text-xs text-muted-foreground space-y-1 border-b pb-4">
                     {property.tenantName && (
                     <div className="flex items-center gap-2">
@@ -142,19 +162,29 @@ export function PropertyList({ properties, userId }: PropertyListProps) {
                     </AccordionItem>
                 </Accordion>
             </CardContent>
-            <CardFooter className="border-t pt-4 flex justify-end gap-2">
-                <PropertyForm userId={userId} property={property} />
-                <Button
-                variant="destructive"
-                size="icon"
-                onClick={() => handleDelete(property.id)}
+            <CardFooter className="border-t pt-4 flex justify-between items-center gap-2">
+                <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => handleStatusToggle(property)}
+                    className="flex-1"
                 >
-                <Trash2 className="h-4 w-4" />
+                    {property.status === 'Alugado' ? <ToggleLeft className="mr-2 h-4 w-4" /> : <ToggleRight className="mr-2 h-4 w-4 text-green-600" />}
+                    {property.status === 'Alugado' ? 'Marcar Vazio' : 'Marcar Alugado'}
                 </Button>
+                <div className='flex'>
+                    <PropertyForm userId={userId} property={property} />
+                    <Button
+                    variant="destructive"
+                    size="icon"
+                    onClick={() => handleDelete(property.id)}
+                    >
+                    <Trash2 className="h-4 w-4" />
+                    </Button>
+                </div>
             </CardFooter>
             </Card>
-        )
-      })}
+      ))}
     </div>
   );
 }

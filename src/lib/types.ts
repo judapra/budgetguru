@@ -55,7 +55,7 @@ export type Transaction = {
     grossRent: number;
     netRent: number;
     adminFee: number;
-    status: 'Alugado' | 'Vazio'; // This will be derived, but kept for potential direct usage
+    status: 'Alugado' | 'Vazio';
     tenantName?: string;
     tenantPhone?: string;
   };
@@ -89,5 +89,6 @@ export type Transaction = {
     userId: string;
     name: string;
   }
+
 
 

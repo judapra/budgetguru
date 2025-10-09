@@ -31,6 +31,7 @@ import type { Property } from '@/lib/types';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { cn } from '@/lib/utils';
+import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
 
 const formSchema = z.object({
   name: z.string().min(2, 'O nome do imóvel é obrigatório.'),
@@ -39,6 +40,9 @@ const formSchema = z.object({
   adminFee: z.coerce.number().min(0, 'A taxa deve ser positiva.'),
   tenantName: z.string().optional(),
   tenantPhone: z.string().optional(),
+  status: z.enum(['Alugado', 'Vazio'], {
+    required_error: 'Você precisa selecionar um status.',
+  }),
 });
 
 type PropertyFormProps = {
@@ -63,6 +67,7 @@ export function PropertyForm({ userId, property, className }: PropertyFormProps)
       adminFee: 0,
       tenantName: '',
       tenantPhone: '',
+      status: 'Vazio',
     },
   });
 
@@ -75,6 +80,7 @@ export function PropertyForm({ userId, property, className }: PropertyFormProps)
         adminFee: property.adminFee,
         tenantName: property.tenantName || '',
         tenantPhone: property.tenantPhone || '',
+        status: property.status || 'Vazio',
       });
     } else {
       form.reset({
@@ -84,6 +90,7 @@ export function PropertyForm({ userId, property, className }: PropertyFormProps)
         adminFee: 0,
         tenantName: '',
         tenantPhone: '',
+        status: 'Vazio',
       });
     }
   }, [property, isEditing, form, open]);
@@ -98,14 +105,10 @@ export function PropertyForm({ userId, property, className }: PropertyFormProps)
     if (!firestore) return;
     setIsSubmitting(true);
     
-    // Automatically determine status based on tenantName
-    const status = values.tenantName ? 'Alugado' : 'Vazio';
-
     const propertyData = {
       ...values,
       userId,
       netRent,
-      status, // Add derived status to the data
     };
 
     try {
@@ -163,10 +166,36 @@ export function PropertyForm({ userId, property, className }: PropertyFormProps)
               control={form.control}
               name="name"
               render={({ field }) => (
-                <FormItem className="md:col-span-2">
+                <FormItem>
                   <FormLabel>Nome do Imóvel</FormLabel>
                   <FormControl>
                     <Input placeholder="Ex: Apartamento na Praia" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+             <FormField
+              control={form.control}
+              name="status"
+              render={({ field }) => (
+                <FormItem className="space-y-3">
+                  <FormLabel>Status do Imóvel</FormLabel>
+                  <FormControl>
+                    <RadioGroup onValueChange={field.onChange} value={field.value} className="flex space-x-4">
+                      <FormItem className="flex items-center space-x-2 space-y-0">
+                        <FormControl>
+                          <RadioGroupItem value="Alugado" />
+                        </FormControl>
+                        <FormLabel className="font-normal">Alugado</FormLabel>
+                      </FormItem>
+                      <FormItem className="flex items-center space-x-2 space-y-0">
+                        <FormControl>
+                          <RadioGroupItem value="Vazio" />
+                        </FormControl>
+                        <FormLabel className="font-normal">Vazio</FormLabel>
+                      </FormItem>
+                    </RadioGroup>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -221,9 +250,9 @@ export function PropertyForm({ userId, property, className }: PropertyFormProps)
             </div>
 
             <div className="md:col-span-2 border-t pt-4">
-                 <h3 className="text-base font-medium mb-2">Informações do Inquilino</h3>
+                 <h3 className="text-base font-medium mb-2">Informações do Inquilino (Opcional)</h3>
                  <p className="text-sm text-muted-foreground mb-4">
-                    Preencha para marcar o imóvel como "Alugado". Deixe em branco se estiver "Vazio".
+                    Preencha caso o imóvel esteja alugado para ter os dados de contato.
                  </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <FormField
