@@ -28,9 +28,7 @@ export function Dashboard() {
           <CircleDollarSign className="h-6 w-6 text-primary" />
           <h2 className="text-xl font-bold font-headline">Finanças Pessoais</h2>
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <PersonalTab />
-        </div>
+        <PersonalTab />
       </section>
 
       <Separator />
@@ -40,9 +38,7 @@ export function Dashboard() {
           <Briefcase className="h-6 w-6 text-primary" />
           <h2 className="text-xl font-bold font-headline">Finanças da Empresa</h2>
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <CompanyTab />
-        </div>
+        <CompanyTab />
       </section>
 
       <Separator />

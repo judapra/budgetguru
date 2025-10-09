@@ -44,11 +44,13 @@ export function OverviewChart({ data, title, description, actions }: OverviewCha
             <CardTitle className="font-headline">{title}</CardTitle>
             <CardDescription>{description}</CardDescription>
           </div>
-          {actions && actions()}
+          <div className="flex-shrink-0">
+            {actions && actions()}
+          </div>
         </div>
       </CardHeader>
       <CardContent className="flex-1">
-        <ChartContainer config={chartConfig} className="min-h-[250px] w-full">
+        <ChartContainer config={chartConfig} className="min-h-[250px] w-full h-full">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={data}>
               <CartesianGrid vertical={false} />

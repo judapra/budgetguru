@@ -24,12 +24,15 @@ const calculatePercentageChange = (current: number, previous: number) => {
     if (previous === 0) {
         return current > 0 ? 100 : 0;
     }
+    if (current === 0 && previous > 0) {
+        return -100;
+    }
     return ((current - previous) / previous) * 100;
 };
 
 const SummaryStat = ({ title, value, percentage, isIncome }: { title: string, value: number, percentage: number, isIncome: boolean}) => {
     const isPositive = percentage >= 0;
-    const isNeutral = percentage === 0 || !isFinite(percentage);
+    const isNeutral = !isFinite(percentage);
     const Icon = isNeutral ? Minus : (isPositive ? ArrowUp : ArrowDown);
     const color = isNeutral ? 'text-muted-foreground' : (isPositive ? (isIncome ? 'text-green-500' : 'text-red-500') : (isIncome ? 'text-red-500' : 'text-green-500'));
 
@@ -53,7 +56,7 @@ export function DashboardSummaryCard({ incomes, expenses }: DashboardSummaryCard
         const currentMonth = now.getMonth();
         const currentYear = now.getFullYear();
 
-        const previousDate = new Date(now.setMonth(now.getMonth() - 1));
+        const previousDate = new Date(new Date().setMonth(now.getMonth() - 1));
         const previousMonth = previousDate.getMonth();
         const previousYear = previousDate.getFullYear();
 
@@ -75,12 +78,12 @@ export function DashboardSummaryCard({ incomes, expenses }: DashboardSummaryCard
     }, [incomes, expenses]);
 
     return (
-        <Card className="h-full">
+        <Card className="h-full flex flex-col">
             <CardHeader>
                 <CardTitle className="font-headline">Resumo do Mês</CardTitle>
                 <CardDescription>Sua performance financeira neste mês em comparação com o anterior.</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-6 flex-1 flex flex-col justify-around">
                 <SummaryStat 
                     title="Receitas este mês"
                     value={summary.currentMonthIncome}
