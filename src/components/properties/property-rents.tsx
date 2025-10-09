@@ -1,3 +1,4 @@
+
 'use client'
 import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { deleteDoc, doc, collection, query, orderBy, getDocs, where } from 'firebase/firestore';
@@ -9,11 +10,12 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { type PropertyRent } from '@/lib/types';
 import { Button } from '@/components/ui/button';
-import { Trash2, Banknote, Landmark, Pencil, Briefcase, CircleDollarSign, MessageSquareText } from 'lucide-react';
+import { Trash2, Banknote, Landmark, Pencil, Briefcase, CircleDollarSign, MessageSquareText, FileUp } from 'lucide-react';
 import { PropertyRentEditForm } from './property-rent-edit-form';
+import { Badge } from '../ui/badge';
 
 
-export function PropertyRents({ propertyId, propertyName, userId, baseRentAmount }: { propertyId: string, propertyName: string, userId: string, baseRentAmount: number }) {
+export function PropertyRents({ propertyId, propertyName, userId, baseRentAmount, adminFee }: { propertyId: string, propertyName: string, userId: string, baseRentAmount: number, adminFee: number }) {
     const firestore = useFirestore();
     const { user } = useUser();
     const { toast } = useToast();
@@ -65,7 +67,7 @@ export function PropertyRents({ propertyId, propertyName, userId, baseRentAmount
         <div>
             <div className="flex justify-between items-center mb-2">
                 <h4 className="font-semibold">Aluguéis Recebidos</h4>
-                <PropertyRentForm userId={userId} propertyId={propertyId} propertyName={propertyName} baseRentAmount={baseRentAmount} />
+                <PropertyRentForm userId={userId} propertyId={propertyId} propertyName={propertyName} baseRentAmount={baseRentAmount} adminFee={adminFee} />
             </div>
              {rents && rents.length > 0 ? (
                 <ul className="space-y-2">
@@ -80,7 +82,10 @@ export function PropertyRents({ propertyId, propertyName, userId, baseRentAmount
                                      <p className="text-sm font-semibold">{format(new Date(rent.date), "MMMM 'de' yyyy", { locale: ptBR })}</p>
                                      <p className="text-xs text-muted-foreground capitalize">{new Date(rent.date).toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit' })}</p>
                                     </div>
-                                    <p className="text-sm font-bold text-green-600">{formatCurrency(finalAmount)}</p>
+                                    <div className="flex items-center gap-2">
+                                        {rent.isAdjustment && <Badge variant="outline" className="border-blue-500 text-blue-500">Reajuste</Badge>}
+                                        <p className="text-sm font-bold text-green-600">{formatCurrency(finalAmount)}</p>
+                                    </div>
                                 </div>
                                 
                                 <div className='text-xs text-muted-foreground space-y-1.5 border-t border-border/50 pt-2'>
@@ -110,7 +115,7 @@ export function PropertyRents({ propertyId, propertyName, userId, baseRentAmount
                                 
                             </div>
                             <div className="flex flex-col items-center justify-start ml-2">
-                                <PropertyRentEditForm userId={userId} propertyId={propertyId} propertyName={propertyName} rent={rent} baseRentAmount={baseRentAmount} />
+                                <PropertyRentEditForm userId={userId} propertyId={propertyId} propertyName={propertyName} rent={rent} baseRentAmount={baseRentAmount} adminFee={adminFee} />
                                 <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleDeleteRent(rent)}>
                                     <Trash2 className="h-3 w-3" />
                                 </Button>

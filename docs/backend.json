@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "User": {
@@ -113,7 +114,8 @@
         "details": { "type": "string", "description": "Optional details about the rent payment." },
         "account": { "type": "string", "description": "The bank account where the rent was deposited." },
         "discounts": { "type": "number", "description": "Any discounts applied to the rent payment." },
-        "additions": { "type": "number", "description": "Any additions or fees applied to the rent payment." }
+        "additions": { "type": "number", "description": "Any additions or fees applied to the rent payment." },
+        "isAdjustment": { "type": "boolean", "description": "Indicates if this rent entry is a contract adjustment." }
       },
       "required": ["id", "propertyId", "date", "amount", "account"]
     }

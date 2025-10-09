@@ -1,10 +1,11 @@
+
 'use client';
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useFirestore, useUser } from '@/firebase';
-import { doc, setDoc, getDocs, query, where, collection, addDoc, deleteDoc } from 'firebase/firestore';
+import { doc, setDoc, getDocs, query, where, collection, addDoc, deleteDoc, writeBatch } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -30,6 +31,7 @@ import { FirestorePermissionError } from '@/firebase/errors';
 import { InputDatePicker } from '../ui/input-date-picker';
 import { Textarea } from '../ui/textarea';
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
+import { Switch } from '../ui/switch';
 
 
 const formSchema = z.object({
@@ -42,6 +44,7 @@ const formSchema = z.object({
   destination: z.enum(['Personal', 'Company'], {
     required_error: 'Você precisa selecionar um destino para o depósito.',
   }),
+  isAdjustment: z.boolean().default(false),
 });
 
 type PropertyRentEditFormProps = {
@@ -50,9 +53,9 @@ type PropertyRentEditFormProps = {
   propertyName: string;
   rent: PropertyRent;
   baseRentAmount?: number;
+  adminFee: number;
 };
 
-// This function now lives inside the component that uses it, or is passed as a prop
 async function getOrCreateCategory(
     firestore: any,
     userId: string,
@@ -83,7 +86,7 @@ async function getOrCreateCategory(
 }
 
 
-export function PropertyRentEditForm({ userId, propertyId, propertyName, rent, baseRentAmount }: PropertyRentEditFormProps) {
+export function PropertyRentEditForm({ userId, propertyId, propertyName, rent, baseRentAmount, adminFee }: PropertyRentEditFormProps) {
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const firestore = useFirestore();
@@ -102,6 +105,7 @@ export function PropertyRentEditForm({ userId, propertyId, propertyName, rent, b
       discounts: getRoundedValue(rent.discounts),
       additions: getRoundedValue(rent.additions),
       destination: rent.destination,
+      isAdjustment: rent.isAdjustment,
     },
   });
 
@@ -114,6 +118,7 @@ export function PropertyRentEditForm({ userId, propertyId, propertyName, rent, b
       discounts: getRoundedValue(rent.discounts),
       additions: getRoundedValue(rent.additions),
       destination: rent.destination,
+      isAdjustment: rent.isAdjustment,
     });
   }, [rent, form, open]);
 
@@ -122,9 +127,9 @@ export function PropertyRentEditForm({ userId, propertyId, propertyName, rent, b
     setIsSubmitting(true);
 
     const finalAmount = (values.amount || 0) + (values.additions || 0) - (values.discounts || 0);
+    const batch = writeBatch(firestore);
 
     try {
-        // Step 1: Update the rent document
         const rentRef = doc(firestore, `users/${user.uid}/properties/${propertyId}/rents`, rent.id);
         const rentData: Omit<PropertyRent, 'id'> = {
             ...rent,
@@ -135,26 +140,25 @@ export function PropertyRentEditForm({ userId, propertyId, propertyName, rent, b
             additions: values.additions,
             details: values.details,
             destination: values.destination,
+            isAdjustment: values.isAdjustment,
         };
-        await setDoc(rentRef, rentData);
+        batch.update(rentRef, rentData);
 
-        // Step 2: Find and delete the old income entry, regardless of collection
+        // Find and delete the old income entry, regardless of collection
         const personalIncomeQuery = query(collection(firestore, `users/${user.uid}/incomes`), where("propertyRentId", "==", rent.id));
         const companyIncomeQuery = query(collection(firestore, `users/${user.uid}/company_incomes`), where("propertyRentId", "==", rent.id));
         
         const [personalSnap, companySnap] = await Promise.all([getDocs(personalIncomeQuery), getDocs(companyIncomeQuery)]);
+        if(!personalSnap.empty) batch.delete(personalSnap.docs[0].ref);
+        if(!companySnap.empty) batch.delete(companySnap.docs[0].ref);
 
-        if(!personalSnap.empty) await deleteDoc(personalSnap.docs[0].ref);
-        if(!companySnap.empty) await deleteDoc(companySnap.docs[0].ref);
-
-
-        // Step 3: Get or create the new category and create the new income entry
+        // Get or create the new category and create the new income entry
         const newCategoryCollectionName = values.destination === 'Personal' ? 'categories' : 'company_categories';
         const categoryDoc = await getOrCreateCategory(firestore, user.uid, 'Receita de Aluguel', 'Income', newCategoryCollectionName);
         const categoryId = categoryDoc.id;
         
         const newIncomeCollectionName = values.destination === 'Personal' ? 'incomes' : 'company_incomes';
-        const newIncomeRef = collection(firestore, `users/${user.uid}/${newIncomeCollectionName}`);
+        const newIncomeRef = doc(collection(firestore, `users/${user.uid}/${newIncomeCollectionName}`));
 
         const incomeData = {
             amount: finalAmount,
@@ -166,14 +170,26 @@ export function PropertyRentEditForm({ userId, propertyId, propertyName, rent, b
             propertyRentId: rentRef.id,
         };
 
-        await addDoc(newIncomeRef, incomeData);
+        batch.set(newIncomeRef, incomeData);
         
-        toast({ title: 'Sucesso!', description: 'Aluguel atualizado e receita ajustada.' });
+        if (values.isAdjustment) {
+            const propertyRef = doc(firestore, `users/${user.uid}/properties`, propertyId);
+            const adminFeeValue = (values.amount * adminFee) / 100;
+            const newNetRent = values.amount - adminFeeValue;
+            batch.update(propertyRef, {
+                grossRent: values.amount,
+                netRent: newNetRent
+            });
+        }
+
+        await batch.commit();
+
+        toast({ title: 'Sucesso!', description: `Aluguel atualizado e receita ajustada.${values.isAdjustment ? ' O valor base do imóvel foi atualizado.' : ''}` });
         setOpen(false);
 
     } catch (error: any) {
         console.error("Error updating rent and income:", error);
-        toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível atualizar o aluguel e a receita. A operação foi revertida.' });
+        toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível atualizar o aluguel e a receita.' });
         
         const permissionError = new FirestorePermissionError({
             path: `users/${user.uid}/properties/${propertyId}/rents/${rent.id}`,
@@ -199,6 +215,24 @@ export function PropertyRentEditForm({ userId, propertyId, propertyName, rent, b
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+             <FormField
+              control={form.control}
+              name="isAdjustment"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                  <div className="space-y-0.5">
+                    <FormLabel>Reajuste de Contrato?</FormLabel>
+                    <FormMessage />
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
             <FormField
                 control={form.control}
                 name="destination"
