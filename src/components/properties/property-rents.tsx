@@ -10,9 +10,10 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { type PropertyRent } from '@/lib/types';
 import { Button } from '@/components/ui/button';
-import { Trash2, Banknote, Landmark, Pencil, Briefcase, CircleDollarSign, MessageSquareText, FileUp } from 'lucide-react';
+import { Trash2, Banknote, Landmark, Pencil, Briefcase, CircleDollarSign, MessageSquareText, FileUp, Info } from 'lucide-react';
 import { PropertyRentEditForm } from './property-rent-edit-form';
 import { Badge } from '../ui/badge';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 
 
 export function PropertyRents({ propertyId, propertyName, userId, baseRentAmount, adminFee }: { propertyId: string, propertyName: string, userId: string, baseRentAmount: number, adminFee: number }) {
@@ -67,12 +68,15 @@ export function PropertyRents({ propertyId, propertyName, userId, baseRentAmount
         <div>
             <div className="flex justify-between items-center mb-2">
                 <h4 className="font-semibold">Aluguéis Recebidos</h4>
-                <PropertyRentForm userId={userId} propertyId={propertyId} propertyName={propertyName} baseRentAmount={baseRentAmount} adminFee={adminFee} />
+                <PropertyRentForm propertyId={propertyId} propertyName={propertyName} baseRentAmount={baseRentAmount} adminFee={adminFee} />
             </div>
              {rents && rents.length > 0 ? (
                 <ul className="space-y-2">
                 {rents.map((rent) => {
-                    const finalAmount = (rent.amount || 0) + (rent.additions || 0) - (rent.discounts || 0);
+                    const receivedAmount = rent.isAdjustment 
+                        ? rent.amount - (rent.amount * adminFee / 100) + (rent.additions || 0) - (rent.discounts || 0)
+                        : rent.amount + (rent.additions || 0) - (rent.discounts || 0);
+
                     const DestinationIcon = rent.destination === 'Personal' ? CircleDollarSign : Briefcase;
                     return (
                         <li key={rent.id} className="flex justify-between items-start bg-muted/50 p-3 rounded-md">
@@ -83,8 +87,19 @@ export function PropertyRents({ propertyId, propertyName, userId, baseRentAmount
                                      <p className="text-xs text-muted-foreground capitalize">{new Date(rent.date).toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit' })}</p>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        {rent.isAdjustment && <Badge variant="outline" className="border-blue-500 text-blue-500">Reajuste</Badge>}
-                                        <p className="text-sm font-bold text-green-600">{formatCurrency(finalAmount)}</p>
+                                        {rent.isAdjustment && (
+                                            <TooltipProvider>
+                                                <Tooltip>
+                                                    <TooltipTrigger>
+                                                        <Badge variant="outline" className="border-blue-500 text-blue-500">Reajuste</Badge>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent>
+                                                        <p>O valor base do imóvel foi atualizado a partir deste lançamento.</p>
+                                                    </TooltipContent>
+                                                </Tooltip>
+                                            </TooltipProvider>
+                                        )}
+                                        <p className="text-sm font-bold text-green-600">{formatCurrency(receivedAmount)}</p>
                                     </div>
                                 </div>
                                 
@@ -100,7 +115,7 @@ export function PropertyRents({ propertyId, propertyName, userId, baseRentAmount
                                     <div className="flex items-center gap-2">
                                         <Banknote className="h-3 w-3" />
                                         <span>
-                                            Base: {formatCurrency(rent.amount)}
+                                            {rent.isAdjustment ? "Bruto" : "Base"}: {formatCurrency(rent.amount)}
                                             {rent.additions ? <span className="text-blue-500"> + {formatCurrency(rent.additions)}</span> : ''}
                                             {rent.discounts ? <span className="text-orange-500"> - {formatCurrency(rent.discounts)}</span> : ''}
                                         </span>

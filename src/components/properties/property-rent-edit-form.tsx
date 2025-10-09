@@ -32,10 +32,13 @@ import { InputDatePicker } from '../ui/input-date-picker';
 import { Textarea } from '../ui/textarea';
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
 import { Switch } from '../ui/switch';
+import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
+import { Info } from 'lucide-react';
 
 
 const formSchema = z.object({
-  amount: z.coerce.number().min(0, 'O valor deve ser positivo ou zero.'),
+  grossAmount: z.coerce.number().optional(), // Valor bruto para reajuste
+  netAmount: z.coerce.number().min(0, 'O valor deve ser positivo ou zero.'), // Valor líquido recebido
   details: z.string().optional(),
   date: z.date({ required_error: 'A data é obrigatória.' }),
   account: z.string().min(2, 'A conta é obrigatória.'),
@@ -45,7 +48,17 @@ const formSchema = z.object({
     required_error: 'Você precisa selecionar um destino para o depósito.',
   }),
   isAdjustment: z.boolean().default(false),
+}).refine(data => {
+    // Se for um reajuste, o grossAmount é obrigatório e deve ser maior que 0
+    if (data.isAdjustment) {
+        return data.grossAmount && data.grossAmount > 0;
+    }
+    return true;
+}, {
+    message: 'O valor bruto do aluguel é obrigatório para reajustes.',
+    path: ['grossAmount'],
 });
+
 
 type PropertyRentEditFormProps = {
   userId: string;
@@ -94,39 +107,53 @@ export function PropertyRentEditForm({ userId, propertyId, propertyName, rent, b
   const { toast } = useToast();
 
   const getRoundedValue = (value?: number) => value ? parseFloat(value.toFixed(2)) : 0;
+  
+  const calculateNetAmountFromGross = (gross: number) => {
+    return gross - (gross * adminFee / 100);
+  }
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      amount: getRoundedValue(rent.amount),
-      details: rent.details || '',
-      date: new Date(rent.date),
-      account: rent.account,
-      discounts: getRoundedValue(rent.discounts),
-      additions: getRoundedValue(rent.additions),
-      destination: rent.destination,
-      isAdjustment: rent.isAdjustment,
+        grossAmount: getRoundedValue(rent.isAdjustment ? rent.amount : undefined),
+        netAmount: rent.isAdjustment 
+            ? calculateNetAmountFromGross(rent.amount) + (rent.additions || 0) - (rent.discounts || 0)
+            : rent.amount,
+        details: rent.details || '',
+        date: new Date(rent.date),
+        account: rent.account,
+        discounts: getRoundedValue(rent.discounts),
+        additions: getRoundedValue(rent.additions),
+        destination: rent.destination,
+        isAdjustment: rent.isAdjustment,
     },
   });
-
+  
   useEffect(() => {
+    const finalReceivedAmount = rent.isAdjustment
+    ? calculateNetAmountFromGross(rent.amount) + (rent.additions || 0) - (rent.discounts || 0)
+    : rent.amount;
+
     form.reset({
-      amount: getRoundedValue(rent.amount),
-      details: rent.details || '',
-      date: new Date(rent.date),
-      account: rent.account,
-      discounts: getRoundedValue(rent.discounts),
-      additions: getRoundedValue(rent.additions),
-      destination: rent.destination,
-      isAdjustment: rent.isAdjustment,
+        grossAmount: rent.isAdjustment ? rent.amount : undefined,
+        netAmount: finalReceivedAmount,
+        details: rent.details || '',
+        date: new Date(rent.date),
+        account: rent.account,
+        discounts: rent.discounts || 0,
+        additions: rent.additions || 0,
+        destination: rent.destination,
+        isAdjustment: rent.isAdjustment,
     });
   }, [rent, form, open]);
+  
+
+  const isAdjustment = form.watch('isAdjustment');
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (!firestore || !user) return;
     setIsSubmitting(true);
 
-    const finalAmount = (values.amount || 0) + (values.additions || 0) - (values.discounts || 0);
     const batch = writeBatch(firestore);
 
     try {
@@ -134,7 +161,7 @@ export function PropertyRentEditForm({ userId, propertyId, propertyName, rent, b
         const rentData: Omit<PropertyRent, 'id'> = {
             ...rent,
             date: values.date.toISOString(),
-            amount: values.amount,
+            amount: values.isAdjustment ? values.grossAmount! : values.netAmount!,
             account: values.account,
             discounts: values.discounts,
             additions: values.additions,
@@ -161,7 +188,7 @@ export function PropertyRentEditForm({ userId, propertyId, propertyName, rent, b
         const newIncomeRef = doc(collection(firestore, `users/${user.uid}/${newIncomeCollectionName}`));
 
         const incomeData = {
-            amount: finalAmount,
+            amount: values.netAmount!,
             categoryId: categoryId,
             date: values.date.toISOString(),
             details: `Aluguel: ${propertyName}`,
@@ -174,10 +201,10 @@ export function PropertyRentEditForm({ userId, propertyId, propertyName, rent, b
         
         if (values.isAdjustment) {
             const propertyRef = doc(firestore, `users/${user.uid}/properties`, propertyId);
-            const adminFeeValue = (values.amount * adminFee) / 100;
-            const newNetRent = values.amount - adminFeeValue;
+            const adminFeeValue = (values.grossAmount! * adminFee) / 100;
+            const newNetRent = values.grossAmount! - adminFeeValue;
             batch.update(propertyRef, {
-                grossRent: values.amount,
+                grossRent: values.grossAmount,
                 netRent: newNetRent
             });
         }
@@ -233,6 +260,15 @@ export function PropertyRentEditForm({ userId, propertyId, propertyName, rent, b
                 </FormItem>
               )}
             />
+            {isAdjustment && (
+                <Alert>
+                    <Info className="h-4 w-4" />
+                    <AlertTitle>Modo Reajuste Ativado</AlertTitle>
+                    <AlertDescription>
+                        Informe o novo valor BRUTO do aluguel. O valor base do imóvel será atualizado.
+                    </AlertDescription>
+                </Alert>
+            )}
             <FormField
                 control={form.control}
                 name="destination"
@@ -264,14 +300,29 @@ export function PropertyRentEditForm({ userId, propertyId, propertyName, rent, b
                 )}
             />
             <div className="grid grid-cols-2 gap-4">
+                 {isAdjustment && (
+                    <FormField
+                        control={form.control}
+                        name="grossAmount"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Valor Bruto (Contrato)</FormLabel>
+                            <FormControl>
+                                <Input type="number" placeholder="R$ 5000,00" {...field} step="0.01" />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                )}
                 <FormField
                     control={form.control}
-                    name="amount"
+                    name="netAmount"
                     render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Valor Recebido (base)</FormLabel>
+                        <FormItem className={!isAdjustment ? 'col-span-2' : ''}>
+                        <FormLabel>Valor Líquido Recebido</FormLabel>
                         <FormControl>
-                            <Input type="number" placeholder="R$ 0,00" {...field} step="0.01" />
+                            <Input type="number" placeholder="R$ 4680,65" {...field} step="0.01" />
                         </FormControl>
                         <FormMessage />
                         </FormItem>
@@ -281,7 +332,7 @@ export function PropertyRentEditForm({ userId, propertyId, propertyName, rent, b
                 control={form.control}
                 name="date"
                 render={({ field }) => (
-                    <FormItem className="flex flex-col">
+                    <FormItem className="flex flex-col col-span-2">
                     <FormLabel>Data do Pagamento</FormLabel>
                     <FormControl>
                         <InputDatePicker field={field} />

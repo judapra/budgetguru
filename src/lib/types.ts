@@ -74,7 +74,7 @@ export type Transaction = {
     id: string;
     propertyId: string;
     date: string;
-    amount: number;
+    amount: number; // If isAdjustment is true, this is the GROSS rent. Otherwise, it's the NET amount received.
     details?: string;
     account: string;
     discounts?: number;
@@ -89,6 +89,3 @@ export type Transaction = {
     userId: string;
     name: string;
   }
-
-
-
