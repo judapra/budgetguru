@@ -1,4 +1,3 @@
-
 "use client";
 
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, XAxis, YAxis } from "recharts";
@@ -26,18 +25,12 @@ type OverviewChartProps = {
 
 export function OverviewChart({ data, title, description, actions }: OverviewChartProps) {
   const chartConfig = {
-    income: {
-      label: "Receita",
-      color: "hsl(var(--chart-1))",
-    },
-    expenses: {
-      label: "Despesas",
-      color: "hsl(var(--chart-2))",
-    },
+    income: { label: "Receita", color: "hsl(var(--chart-1))" },
+    expenses: { label: "Despesas", color: "hsl(var(--chart-2))" },
   };
 
   return (
-    <Card>
+    <Card className="h-full flex flex-col">
       <CardHeader>
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
           <div>
@@ -49,9 +42,9 @@ export function OverviewChart({ data, title, description, actions }: OverviewCha
           </div>
         </div>
       </CardHeader>
-      <CardContent>
-        <ChartContainer config={chartConfig} className="w-full">
-          <ResponsiveContainer width="100%" height={350}>
+      <CardContent className="flex-grow">
+        <ChartContainer config={chartConfig} className="w-full h-full">
+          <ResponsiveContainer width="100%" height="100%">
             <BarChart data={data}>
               <CartesianGrid vertical={false} />
               <XAxis

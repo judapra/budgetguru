@@ -99,8 +99,8 @@ export function PersonalTab() {
     };
 
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-            <div className="lg:col-span-2">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start h-[500px]">
+            <div className="lg:col-span-2 h-full">
                 <OverviewChart
                     data={chartData}
                     title="Visão Geral Anual"
@@ -108,7 +108,7 @@ export function PersonalTab() {
                     actions={renderActions}
                 />
             </div>
-            <div className="lg:col-span-1">
+            <div className="lg:col-span-1 h-full">
                 <DashboardSummaryCard incomes={incomes || []} expenses={expenses || []} />
             </div>
         </div>

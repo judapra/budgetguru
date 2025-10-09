@@ -151,10 +151,14 @@ export function ExpenseForm({ categories, userId, expense, variant = 'default', 
         // --- SINGLE CREATION LOGIC ---
         const expensesCollection = collection(firestore, `users/${userId}/expenses`);
         const expenseData = {
-          ...values,
-          date: values.date.toISOString(),
           userId,
-          installment: values.installments ? `1/${values.installments}` : undefined
+          amount: values.amount,
+          categoryId: values.categoryId,
+          date: values.date.toISOString(),
+          details: values.details,
+          paymentMethod: values.paymentMethod,
+          isInstallment: values.isInstallment,
+          ...(values.isInstallment && values.installments && { installment: `1/${values.installments}` })
         };
         await addDoc(expensesCollection, expenseData);
         toast({

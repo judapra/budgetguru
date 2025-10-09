@@ -207,7 +207,7 @@ export function CompanyTab() {
                     <Button asChild variant="outline">
                         <Link href="/company/expenses">
                             Adicionar Despesa
-                             <ArrowRight className="ml-2 h-4 w-4" />
+                              <ArrowRight className="ml-2 h-4 w-4" />
                         </Link>
                     </Button>
                 </div>
@@ -216,16 +216,16 @@ export function CompanyTab() {
     }
 
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-            <div className="lg:col-span-2">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start h-[500px]">
+            <div className="lg:col-span-2 h-full">
                 <OverviewChart
                     data={chartData}
-                    title="Visão Geral Anual"
-                    description="Receitas e despesas da empresa nos últimos meses."
+                    title={`Visão Geral de ${company.name}`}
+                    description="Suas receitas e despesas da empresa nos últimos meses."
                     actions={renderActions}
                 />
             </div>
-            <div className="lg:col-span-1">
+            <div className="lg:col-span-1 h-full">
                 <DashboardSummaryCard incomes={incomes || []} expenses={expenses || []} />
             </div>
         </div>
