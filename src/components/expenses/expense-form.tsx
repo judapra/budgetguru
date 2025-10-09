@@ -143,7 +143,7 @@ export function ExpenseForm({ categories, userId, expense, variant = 'default', 
         await batch.commit();
         toast({
           title: 'Sucesso!',
-          description: `${totalInstallments} despesas recorrentes foram cadastradas.`,
+          description: `${totalInstallments} despesas parceladas foram cadastradas.`,
         });
         setOpen(false);
   
@@ -216,7 +216,7 @@ export function ExpenseForm({ categories, userId, expense, variant = 'default', 
                     name="date"
                     render={({ field }) => (
                         <FormItem className="flex flex-col">
-                        <FormLabel>Data da {isRecurring ? '1ª Despesa' : 'Despesa'}</FormLabel>
+                        <FormLabel>Data da {isRecurring ? '1ª Parcela' : 'Despesa'}</FormLabel>
                         <FormControl>
                             <InputDatePicker field={field} />
                         </FormControl>
@@ -293,7 +293,7 @@ export function ExpenseForm({ categories, userId, expense, variant = 'default', 
                       </FormControl>
                       <div className="space-y-1 leading-none">
                         <FormLabel>
-                          Despesa Recorrente
+                          Lançar despesa parcelada
                         </FormLabel>
                         <FormMessage />
                       </div>
@@ -307,7 +307,7 @@ export function ExpenseForm({ categories, userId, expense, variant = 'default', 
                     name="installments"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Número de Meses</FormLabel>
+                        <FormLabel>Número de Parcelas</FormLabel>
                         <FormControl>
                           <Input type="number" placeholder="Ex: 12" {...field} min={2} />
                         </FormControl>
