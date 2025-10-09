@@ -5,11 +5,11 @@ import { useToast } from '@/hooks/use-toast';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { PropertyExpenseForm } from './property-expense-form';
-import { format, isBefore, startOfDay, endOfDay, differenceInCalendarMonths, addMonths } from 'date-fns';
+import { format, isBefore, addMonths } from 'date-fns';
 import { type PropertyExpense, type PropertyRecurringExpense } from '@/lib/types';
 import { Button } from '@/components/ui/button';
-import { Trash2, Briefcase, CircleDollarSign, Repeat, History, Pencil } from 'lucide-react';
-import React from 'react';
+import { Trash2, Briefcase, CircleDollarSign, Repeat, Pencil } from 'lucide-react';
+import React, { useMemo } from 'react';
 import { PropertyRecurringExpenseForm } from './property-recurring-expense-form';
 import { Badge } from '../ui/badge';
 
@@ -19,13 +19,11 @@ export function PropertyExpenses({ propertyId, propertyName, userId }: { propert
     const { user } = useUser();
     const { toast } = useToast();
 
-    // Fetches single, one-time expenses
     const singleExpensesQuery = useMemoFirebase(() => {
         if (!userId || !firestore) return null;
         return query(collection(firestore, `users/${userId}/properties/${propertyId}/expenses`), orderBy('date', 'desc'));
     }, [userId, firestore, propertyId]);
     
-    // Fetches the templates for recurring expenses
     const recurringExpensesQuery = useMemoFirebase(() => {
         if (!userId || !firestore) return null;
         return query(collection(firestore, `users/${userId}/properties/${propertyId}/recurring_expenses`));
@@ -69,13 +67,12 @@ export function PropertyExpenses({ propertyId, propertyName, userId }: { propert
     const handleDeleteExpense = async (expense: PropertyExpense) => {
         if (!firestore || !user) return;
 
-        try {
-            // This is a projected expense, so there's nothing to delete from DB
-            if ('isProjected' in expense && expense.isProjected) {
-                toast({ variant: 'destructive', title: 'Atenção', description: "Esta é uma despesa projetada e não pode ser excluída. Para removê-la, edite ou exclua a despesa recorrente original." });
-                return;
-            }
+        if ('isProjected' in expense && expense.isProjected) {
+            toast({ variant: 'destructive', title: 'Atenção', description: "Esta é uma despesa projetada e não pode ser excluída. Para removê-la, edite ou exclua a despesa recorrente original." });
+            return;
+        }
 
+        try {
             const expenseCollectionName = expense.destination === 'Personal' ? 'expenses' : 'company_expenses';
             const generalExpenseQuery = query(collection(firestore, `users/${user.uid}/${expenseCollectionName}`), where("propertyExpenseId", "==", expense.id));
             const generalExpenseSnap = await getDocs(generalExpenseQuery);
@@ -131,7 +128,6 @@ export function PropertyExpenses({ propertyId, propertyName, userId }: { propert
                 {projectedExpenses.map((expense) => {
                     const DestinationIcon = expense.destination === 'Personal' ? CircleDollarSign : Briefcase;
                     const isProjected = 'isProjected' in expense && expense.isProjected;
-                    const isDueForRenewal = expense.recurringTemplateId && isBefore(new Date(expense.date), new Date());
                     
                     const template = recurringExpenseTemplates?.find(t => t.id === expense.recurringTemplateId);
 
