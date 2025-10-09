@@ -1,4 +1,5 @@
 
+
 'use client';
 import { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
@@ -24,7 +25,6 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Loader2, PlusCircle, Pencil } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { Property } from '@/lib/types';
@@ -37,9 +37,6 @@ const formSchema = z.object({
   address: z.string().min(5, 'O endereço é obrigatório.'),
   grossRent: z.coerce.number().min(0, 'O valor deve ser positivo.'),
   adminFee: z.coerce.number().min(0, 'A taxa deve ser positiva.'),
-  status: z.enum(['Alugado', 'Vazio'], {
-    required_error: 'Você precisa selecionar um status.',
-  }),
   tenantName: z.string().optional(),
   tenantPhone: z.string().optional(),
 });
@@ -64,13 +61,10 @@ export function PropertyForm({ userId, property, className }: PropertyFormProps)
       address: '',
       grossRent: 0,
       adminFee: 0,
-      status: 'Vazio',
       tenantName: '',
       tenantPhone: '',
     },
   });
-
-  const watchStatus = form.watch('status');
 
   useEffect(() => {
     if (isEditing && property) {
@@ -79,7 +73,6 @@ export function PropertyForm({ userId, property, className }: PropertyFormProps)
         address: property.address,
         grossRent: property.grossRent,
         adminFee: property.adminFee,
-        status: property.status,
         tenantName: property.tenantName || '',
         tenantPhone: property.tenantPhone || '',
       });
@@ -89,7 +82,6 @@ export function PropertyForm({ userId, property, className }: PropertyFormProps)
         address: '',
         grossRent: 0,
         adminFee: 0,
-        status: 'Vazio',
         tenantName: '',
         tenantPhone: '',
       });
@@ -105,11 +97,15 @@ export function PropertyForm({ userId, property, className }: PropertyFormProps)
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (!firestore) return;
     setIsSubmitting(true);
+    
+    // Automatically determine status based on tenantName
+    const status = values.tenantName ? 'Alugado' : 'Vazio';
 
     const propertyData = {
       ...values,
       userId,
       netRent,
+      status, // Add derived status to the data
     };
 
     try {
@@ -223,66 +219,42 @@ export function PropertyForm({ userId, property, className }: PropertyFormProps)
                 <Label>Aluguel Líquido (R$)</Label>
                 <Input value={netRent.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} disabled />
             </div>
-            <FormField
-              control={form.control}
-              name="status"
-              render={({ field }) => (
-                <FormItem className="space-y-3 md:col-span-2">
-                  <FormLabel>Status</FormLabel>
-                  <FormControl>
-                    <RadioGroup
-                      onValueChange={field.onChange}
-                      value={field.value}
-                      className="flex space-x-4"
-                    >
-                      <FormItem className="flex items-center space-x-2 space-y-0">
+
+            <div className="md:col-span-2 border-t pt-4">
+                 <h3 className="text-base font-medium mb-2">Informações do Inquilino</h3>
+                 <p className="text-sm text-muted-foreground mb-4">
+                    Preencha para marcar o imóvel como "Alugado". Deixe em branco se estiver "Vazio".
+                 </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <FormField
+                    control={form.control}
+                    name="tenantName"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Nome do Inquilino</FormLabel>
                         <FormControl>
-                          <RadioGroupItem value="Alugado" />
+                            <Input placeholder="Nome completo do inquilino" {...field} />
                         </FormControl>
-                        <FormLabel className="font-normal">Alugado</FormLabel>
-                      </FormItem>
-                      <FormItem className="flex items-center space-x-2 space-y-0">
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+                    <FormField
+                    control={form.control}
+                    name="tenantPhone"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Telefone do Inquilino</FormLabel>
                         <FormControl>
-                          <RadioGroupItem value="Vazio" />
+                            <Input placeholder="(99) 99999-9999" {...field} />
                         </FormControl>
-                        <FormLabel className="font-normal">Vazio</FormLabel>
-                      </FormItem>
-                    </RadioGroup>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            {watchStatus === 'Alugado' && (
-              <>
-                <FormField
-                  control={form.control}
-                  name="tenantName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Nome do Inquilino (Opcional)</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Nome completo do inquilino" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="tenantPhone"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Telefone do Inquilino (Opcional)</FormLabel>
-                      <FormControl>
-                        <Input placeholder="(99) 99999-9999" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </>
-            )}
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+                </div>
+            </div>
+          
             <div className="md:col-span-2">
               <Button type="submit" disabled={isSubmitting} className="w-full font-headline">
                 {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

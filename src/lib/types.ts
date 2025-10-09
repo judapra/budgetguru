@@ -1,4 +1,5 @@
 
+
 export type Category = {
     id: string;
     name: string;
@@ -54,7 +55,7 @@ export type Transaction = {
     grossRent: number;
     netRent: number;
     adminFee: number;
-    status: 'Alugado' | 'Vazio';
+    status: 'Alugado' | 'Vazio'; // This will be derived, but kept for potential direct usage
     tenantName?: string;
     tenantPhone?: string;
   };
@@ -88,4 +89,5 @@ export type Transaction = {
     userId: string;
     name: string;
   }
+
 

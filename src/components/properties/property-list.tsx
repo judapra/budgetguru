@@ -1,4 +1,5 @@
 
+
 'use client';
 import {
   Card,
@@ -73,84 +74,87 @@ export function PropertyList({ properties, userId }: PropertyListProps) {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {properties.map((property) => (
-        <Card key={property.id} className="flex flex-col">
-          <CardHeader>
-            <div className="flex justify-between items-start">
-                <div>
-                    <CardTitle className="font-headline text-lg">{property.name}</CardTitle>
-                    <CardDescription className="flex items-center gap-1 pt-1">
-                        <MapPin className="h-3 w-3"/> {property.address}
-                    </CardDescription>
+      {properties.map((property) => {
+        const status = property.tenantName ? 'Alugado' : 'Vazio';
+        return (
+            <Card key={property.id} className="flex flex-col">
+            <CardHeader>
+                <div className="flex justify-between items-start">
+                    <div>
+                        <CardTitle className="font-headline text-lg">{property.name}</CardTitle>
+                        <CardDescription className="flex items-center gap-1 pt-1">
+                            <MapPin className="h-3 w-3"/> {property.address}
+                        </CardDescription>
+                    </div>
+                    <Badge 
+                    className={cn(
+                        status === 'Alugado' ? 'bg-green-100 text-green-800 border-green-200' : 'bg-orange-100 text-orange-800 border-orange-200'
+                    )}
+                    variant={'outline'}
+                    >
+                        {status}
+                    </Badge>
                 </div>
-                <Badge 
-                  className={cn(
-                    property.status === 'Alugado' ? 'bg-green-100 text-green-800 border-green-200' : 'bg-orange-100 text-orange-800 border-orange-200'
-                  )}
-                  variant={'outline'}
+            </CardHeader>
+            <CardContent className="flex-grow space-y-4">
+                {status === 'Alugado' && (property.tenantName || property.tenantPhone) && (
+                <div className="text-xs text-muted-foreground space-y-1 border-b pb-4">
+                    {property.tenantName && (
+                    <div className="flex items-center gap-2">
+                        <User className="h-3 w-3" />
+                        <span>{property.tenantName}</span>
+                    </div>
+                    )}
+                    {property.tenantPhone && (
+                    <div className="flex items-center gap-2">
+                        <Phone className="h-3 w-3" />
+                        <span>{property.tenantPhone}</span>
+                    </div>
+                    )}
+                </div>
+                )}
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div className="space-y-1">
+                        <p className="text-muted-foreground">Aluguel Bruto</p>
+                        <p className="font-medium">{property.grossRent.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
+                    </div>
+                    <div className="space-y-1">
+                        <p className="text-muted-foreground">Taxa Admin ({property.adminFee}%)</p>
+                        <p className="font-medium text-red-500">- {(property.grossRent * property.adminFee / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
+                    </div>
+                    <div className="space-y-1 col-span-2">
+                        <p className="text-muted-foreground">Aluguel Líquido Base</p>
+                        <p className="font-semibold text-lg text-green-600">{property.netRent.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
+                    </div>
+                </div>
+                <Accordion type="single" collapsible className="w-full">
+                    <AccordionItem value="rents">
+                        <AccordionTrigger>Ver Aluguéis</AccordionTrigger>
+                        <AccordionContent>
+                            <PropertyRents propertyId={property.id} propertyName={property.name} userId={userId} baseRentAmount={property.netRent} adminFee={property.adminFee}/>
+                        </AccordionContent>
+                    </AccordionItem>
+                    <AccordionItem value="expenses">
+                        <AccordionTrigger>Ver Despesas</AccordionTrigger>
+                        <AccordionContent>
+                            <PropertyExpenses propertyId={property.id} propertyName={property.name} userId={userId} />
+                        </AccordionContent>
+                    </AccordionItem>
+                </Accordion>
+            </CardContent>
+            <CardFooter className="border-t pt-4 flex justify-end gap-2">
+                <PropertyForm userId={userId} property={property} />
+                <Button
+                variant="destructive"
+                size="icon"
+                onClick={() => handleDelete(property.id)}
                 >
-                    {property.status}
-                </Badge>
-            </div>
-          </CardHeader>
-          <CardContent className="flex-grow space-y-4">
-             {property.status === 'Alugado' && (property.tenantName || property.tenantPhone) && (
-              <div className="text-xs text-muted-foreground space-y-1 border-b pb-4">
-                {property.tenantName && (
-                  <div className="flex items-center gap-2">
-                    <User className="h-3 w-3" />
-                    <span>{property.tenantName}</span>
-                  </div>
-                )}
-                {property.tenantPhone && (
-                  <div className="flex items-center gap-2">
-                    <Phone className="h-3 w-3" />
-                    <span>{property.tenantPhone}</span>
-                  </div>
-                )}
-              </div>
-            )}
-            <div className="grid grid-cols-2 gap-4 text-sm">
-                <div className="space-y-1">
-                    <p className="text-muted-foreground">Aluguel Bruto</p>
-                    <p className="font-medium">{property.grossRent.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
-                </div>
-                 <div className="space-y-1">
-                    <p className="text-muted-foreground">Taxa Admin ({property.adminFee}%)</p>
-                    <p className="font-medium text-red-500">- {(property.grossRent * property.adminFee / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
-                </div>
-                <div className="space-y-1 col-span-2">
-                    <p className="text-muted-foreground">Aluguel Líquido Base</p>
-                    <p className="font-semibold text-lg text-green-600">{property.netRent.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
-                </div>
-            </div>
-            <Accordion type="single" collapsible className="w-full">
-                <AccordionItem value="rents">
-                    <AccordionTrigger>Ver Aluguéis</AccordionTrigger>
-                    <AccordionContent>
-                        <PropertyRents propertyId={property.id} propertyName={property.name} userId={userId} baseRentAmount={property.netRent} adminFee={property.adminFee}/>
-                    </AccordionContent>
-                </AccordionItem>
-                <AccordionItem value="expenses">
-                    <AccordionTrigger>Ver Despesas</AccordionTrigger>
-                    <AccordionContent>
-                        <PropertyExpenses propertyId={property.id} propertyName={property.name} userId={userId} />
-                    </AccordionContent>
-                </AccordionItem>
-            </Accordion>
-          </CardContent>
-          <CardFooter className="border-t pt-4 flex justify-end gap-2">
-            <PropertyForm userId={userId} property={property} />
-            <Button
-              variant="destructive"
-              size="icon"
-              onClick={() => handleDelete(property.id)}
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </CardFooter>
-        </Card>
-      ))}
+                <Trash2 className="h-4 w-4" />
+                </Button>
+            </CardFooter>
+            </Card>
+        )
+      })}
     </div>
   );
 }

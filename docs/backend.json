@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "User": {
@@ -83,7 +84,7 @@
         "netRent": { "type": "number", "description": "The net rent of the property." },
         "adminFee": { "type": "number", "description": "The administration fee for the property in percentage." },
         "status": { "type": "string", "description": "The status of the property (e.g. Rented, Vacant).", "enum": ["Alugado", "Vazio"] },
-        "tenantName": { "type": "string", "description": "The name of the tenant." },
+        "tenantName": { "type": "string", "description": "The name of the tenant. If present, status is 'Alugado'." },
         "tenantPhone": { "type": "string", "description": "The phone number of the tenant." }
       },
       "required": ["id", "userId", "name", "address", "grossRent", "netRent", "adminFee", "status"]
