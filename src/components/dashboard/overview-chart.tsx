@@ -1,4 +1,3 @@
-// VERSÃO FINAL CORRIGIDA - Restaurando o chartConfig e mantendo os outros fixes
 "use client";
 
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, XAxis, YAxis } from "recharts";
@@ -25,8 +24,6 @@ type OverviewChartProps = {
 }
 
 export function OverviewChart({ data, title, description, actions }: OverviewChartProps) {
-  // --- A PARTE QUE SUMIU ESTÁ AQUI ---
-  // Restauramos o objeto de configuração do gráfico
   const chartConfig = {
     income: { label: "Receita", color: "hsl(var(--chart-1))" },
     expenses: { label: "Despesas", color: "hsl(var(--chart-2))" },
@@ -45,10 +42,8 @@ export function OverviewChart({ data, title, description, actions }: OverviewCha
           </div>
         </div>
       </CardHeader>
-      {/* Esta correção resolve o "gráfico derretido" */}
       <CardContent className="flex-grow min-h-0">
         <ChartContainer config={chartConfig} className="w-full h-full">
-          {/* Esta correção resolve o "gráfico embolado" */}
           <ResponsiveContainer width="100%" height="100%" debounce={50}>
             <BarChart data={data}>
               <CartesianGrid vertical={false} />

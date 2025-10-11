@@ -216,7 +216,7 @@ export function CompanyTab() {
     }
 
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch h-[500px]">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch h-[75vh]">
             <div className="lg:col-span-2 h-full">
                 <OverviewChart
                     data={chartData}
