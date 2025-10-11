@@ -108,8 +108,10 @@ export function ExpenseForm({ categories, userId, expense, variant = 'default', 
       if (isEditing && expense) {
         // --- EDITING LOGIC (SINGLE EXPENSE) ---
         const expenseDoc = doc(firestore, `users/${userId}/expenses/${expense.id}`);
+        // Explicitly remove isInstallment and installments for editing
+        const { isInstallment, installments, ...restOfValues } = values;
         const expenseData = {
-          ...values,
+          ...restOfValues,
           date: values.date.toISOString(),
           userId,
         };
@@ -157,8 +159,7 @@ export function ExpenseForm({ categories, userId, expense, variant = 'default', 
           date: values.date.toISOString(),
           details: values.details,
           paymentMethod: values.paymentMethod,
-          isInstallment: values.isInstallment,
-          ...(values.isInstallment && values.installments && { installment: `1/${values.installments}` })
+          ...(values.installments && { installment: `1/${values.installments}` })
         };
         await addDoc(expensesCollection, expenseData);
         toast({
@@ -333,3 +334,5 @@ export function ExpenseForm({ categories, userId, expense, variant = 'default', 
     </Dialog>
   );
 }
+
+    
