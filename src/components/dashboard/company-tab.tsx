@@ -216,13 +216,13 @@ export function CompanyTab() {
     }
 
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start h-[500px]">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch h-[500px]">
             <div className="lg:col-span-2 h-full">
                 <OverviewChart
                     data={chartData}
                     title={`Visão Geral de ${company.name}`}
                     description="Suas receitas e despesas da empresa nos últimos meses."
-                    actions={renderActions}
+                    actions={renderActions()}
                 />
             </div>
             <div className="lg:col-span-1 h-full">
