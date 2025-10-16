@@ -33,7 +33,7 @@ export function Dashboard() {
 
       <Separator />
 
-      <section id="company-section" className="space-y-4">
+      <section id="company-section" className="space-y-4 mt-8">
          <div className="flex items-center gap-3">
           <Briefcase className="h-6 w-6 text-primary" />
           <h2 className="text-xl font-bold font-headline">Finanças da Empresa</h2>
@@ -43,7 +43,7 @@ export function Dashboard() {
 
       <Separator />
 
-      <section id="real-estate-section" className="space-y-4">
+      <section id="real-estate-section" className="space-y-4 mt-8">
          <div className="flex items-center gap-3">
           <Landmark className="h-6 w-6 text-primary" />
           <h2 className="text-xl font-bold font-headline">Gestão de Imóveis</h2>
