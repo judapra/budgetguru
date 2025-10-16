@@ -42,9 +42,9 @@ export function OverviewChart({ data, title, description, actions }: OverviewCha
           </div>
         </div>
       </CardHeader>
-      <CardContent className="flex-grow min-h-0">
+      <CardContent className="flex-grow">
         <ChartContainer config={chartConfig} className="w-full h-full">
-          <ResponsiveContainer width="100%" height="100%" debounce={50}>
+          <ResponsiveContainer width="100%" height={350}>
             <BarChart data={data}>
               <CartesianGrid vertical={false} />
               <XAxis

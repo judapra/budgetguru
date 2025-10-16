@@ -81,7 +81,7 @@ export function DashboardSummaryCard({ incomes, expenses }: DashboardSummaryCard
     }, [incomes, expenses]);
 
     return (
-        <Card>
+        <Card className="flex flex-col h-full">
             <CardHeader>
                 <CardTitle className="font-headline">Resumo do Mês</CardTitle>
                 <CardDescription>Sua performance financeira neste mês em comparação com o anterior.</CardDescription>
