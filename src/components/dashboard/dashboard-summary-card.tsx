@@ -81,12 +81,12 @@ export function DashboardSummaryCard({ incomes, expenses }: DashboardSummaryCard
     }, [incomes, expenses]);
 
     return (
-        <Card className="flex flex-col h-full">
+        <Card>
             <CardHeader>
                 <CardTitle className="font-headline">Resumo do Mês</CardTitle>
                 <CardDescription>Sua performance financeira neste mês em comparação com o anterior.</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6 flex-1 flex flex-col justify-around">
+            <CardContent className="space-y-6 flex flex-col justify-around">
                 <SummaryStat 
                     title="Receitas este mês"
                     value={summary.currentMonthIncome}

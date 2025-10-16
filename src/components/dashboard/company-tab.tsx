@@ -107,7 +107,11 @@ export function CompanyTab() {
     // Render the CompanyHeader which handles creation or editing
     if (!user) return null;
     if (!company) {
-        return <CompanyHeader userId={user.uid} company={null} />
+        return (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+             <CompanyHeader userId={user.uid} company={null} />
+          </div>
+        )
     }
 
 
@@ -127,7 +131,7 @@ export function CompanyTab() {
         return (
             <div className="grid grid-cols-1 gap-6">
                 <CompanyHeader userId={user.uid} company={company}/>
-                <div className="text-center p-8 border rounded-lg max-w-2xl mx-auto col-span-3">
+                <div className="text-center p-8 border rounded-lg lg:col-span-3">
                     <h2 className="text-xl font-bold font-headline mb-2">Comece a Gerenciar as Finanças de {company.name}</h2>
                     <p className="text-muted-foreground mb-4">Cadastre suas receitas e despesas da empresa para ver seu dashboard financeiro.</p>
                     <div className='flex gap-4 justify-center'>
