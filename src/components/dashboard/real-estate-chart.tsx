@@ -75,8 +75,17 @@ export function RealEstateChart({ data }: RealEstateChartProps) {
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig} className="w-full">
-          <ResponsiveContainer width="100%" height={350} className="max-h-[450px]">
-            <BarChart data={data}>
+            <BarChart
+              data={data}
+              width={730}
+              height={350}
+              margin={{
+                top: 5,
+                right: 30,
+                left: 20,
+                bottom: 5,
+              }}
+            >
               <CartesianGrid vertical={false} />
               <XAxis
                 dataKey="month"
@@ -96,7 +105,6 @@ export function RealEstateChart({ data }: RealEstateChartProps) {
               <Bar dataKey="rents" fill="var(--color-rents)" radius={4} name="Aluguéis" />
               <Bar dataKey="expenses" fill="var(--color-expenses)" radius={4} name="Despesas" />
             </BarChart>
-          </ResponsiveContainer>
         </ChartContainer>
       </CardContent>
     </Card>

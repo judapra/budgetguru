@@ -44,8 +44,17 @@ export function OverviewChart({ data, title, description, actions }: OverviewCha
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig} className="w-full">
-          <ResponsiveContainer width="100%" height={350}>
-            <BarChart data={data}>
+            <BarChart
+              data={data}
+              width={730}
+              height={350}
+              margin={{
+                top: 5,
+                right: 30,
+                left: 20,
+                bottom: 5,
+              }}
+            >
               <CartesianGrid vertical={false} />
               <XAxis
                 dataKey="month"
@@ -78,7 +87,6 @@ export function OverviewChart({ data, title, description, actions }: OverviewCha
               <Bar dataKey="income" fill="var(--color-income)" radius={4} />
               <Bar dataKey="expenses" fill="var(--color-expenses)" radius={4} />
             </BarChart>
-          </ResponsiveContainer>
         </ChartContainer>
       </CardContent>
     </Card>
