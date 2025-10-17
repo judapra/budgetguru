@@ -1,7 +1,7 @@
 'use client';
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, orderBy, where, doc, setDoc } from 'firebase/firestore';
+import { collection, query, orderBy, where } from 'firebase/firestore';
 import { OverviewChart } from "./overview-chart";
 import { Loader2, ArrowRight } from 'lucide-react';
 import type { Income, Expense, Category, Company } from '@/lib/types';
@@ -10,19 +10,16 @@ import { Button } from '../ui/button';
 import { IncomeForm } from '../company/incomes/income-form';
 import { ExpenseForm } from '../company/expenses/expense-form';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../ui/card';
-import { Input } from '../ui/input';
-import { Label } from '../ui/label';
-import { useToast } from '@/hooks/use-toast';
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
 import { DashboardSummaryCard } from './dashboard-summary-card';
 import { CompanyHeader } from './company-header';
+import { CompanyForm } from './company-form';
 import type { ChartConfig } from '@/components/ui/chart';
 
 const chartConfig = {
     income: { label: "Receita", color: "hsl(var(--chart-1))" },
     expenses: { label: "Despesas", color: "hsl(var(--chart-2))" },
 } satisfies ChartConfig;
+
 
 const groupTransactionsByMonth = (incomes: Income[], expenses: Expense[]) => {
     const monthlyData: { [key: string]: { month: string; income: number; expenses: number } } = {};
