@@ -42,9 +42,12 @@ export type Transaction = {
   
   export type Budget = {
     id: string;
-    name: string;
-    allocated: number;
-    spent: number;
+    userId: string;
+    categoryId: string;
+    amount: number;
+    month: number;
+    year: number;
+    type: 'Personal' | 'Company';
   };
 
   export type Property = {

@@ -14,7 +14,7 @@ import {
   navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu"
 import React from "react"
-import { Briefcase, CircleDollarSign, Landmark } from "lucide-react"
+import { Briefcase, CircleDollarSign, Landmark, Target } from "lucide-react"
 
 export function MainNav({
   className,
@@ -26,6 +26,7 @@ export function MainNav({
     { href: '/expenses', label: 'Despesas Pessoais' },
     { href: '/incomes', label: 'Receitas Pessoais' },
     { href: '/categories', label: 'Categorias Pessoais' },
+    { href: '/budgets', label: 'Orçamentos Pessoais' },
   ]
 
   const companyRoutes = [

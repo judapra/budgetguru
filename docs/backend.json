@@ -71,6 +71,22 @@
       },
       "required": ["id", "userId", "name", "type"]
     },
+    "Budget": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Budget",
+      "type": "object",
+      "description": "Represents a monthly budget for a specific category.",
+      "properties": {
+        "id": { "type": "string", "description": "Unique identifier for the Budget entity." },
+        "userId": { "type": "string", "description": "Reference to User." },
+        "categoryId": { "type": "string", "description": "Reference to the Category for this budget." },
+        "amount": { "type": "number", "description": "The budgeted amount for the month." },
+        "month": { "type": "number", "description": "The month of the budget (1-12)." },
+        "year": { "type": "number", "description": "The year of the budget." },
+        "type": { "type": "string", "description": "The type of budget ('Personal' or 'Company').", "enum": ["Personal", "Company"] }
+      },
+      "required": ["id", "userId", "categoryId", "amount", "month", "year", "type"]
+    },
     "Property": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Property",
@@ -196,6 +212,16 @@
           "write": "request.auth.uid == userId"
         }
       },
+       {
+        "path": "/users/{userId}/budgets/{budgetId}",
+        "schema": { "$ref": "#/entities/Budget" },
+        "description": "Stores personal budget records.",
+        "permissions": {
+          "list": "request.auth.uid == userId",
+          "read": "request.auth.uid == userId",
+          "write": "request.auth.uid == userId"
+        }
+      },
       {
         "path": "/users/{userId}/company_categories/{categoryId}",
         "schema": { "$ref": "#/entities/Category" },
@@ -220,6 +246,16 @@
         "path": "/users/{userId}/company_incomes/{incomeId}",
         "schema": { "$ref": "#/entities/Income" },
         "description": "Stores company income records.",
+        "permissions": {
+          "list": "request.auth.uid == userId",
+          "read": "request.auth.uid == userId",
+          "write": "request.auth.uid == userId"
+        }
+      },
+      {
+        "path": "/users/{userId}/company_budgets/{budgetId}",
+        "schema": { "$ref": "#/entities/Budget" },
+        "description": "Stores company budget records.",
         "permissions": {
           "list": "request.auth.uid == userId",
           "read": "request.auth.uid == userId",
@@ -270,5 +306,3 @@
     "reasoning": "The Firestore structure is designed to ensure data isolation between users and efficient querying. Each user has their own dedicated space for personal and business finances (expenses, incomes, categories) and properties, enabling secure and scalable access control. This design leverages path-based ownership for private data. The design ensures Authorization Independence by avoiding `get()` calls in security rules, relying solely on `request.auth.uid` and the hierarchical path structure to validate ownership. Segregation is achieved as all documents within a user's collection share the same security posture. This makes securing `list` operations straightforward, ensuring that users can only access their own data (QAPs). The structure facilitates the integrity of ownership by associating each document with a specific `userId`. This explicit association, combined with Firestore security rules, guarantees that only authenticated users can access and manipulate their own data."
   }
 }
-
-    
