@@ -8,17 +8,22 @@ import type { Income, Expense, Category } from '@/lib/types';
 import { IncomeForm } from '../incomes/income-form';
 import { ExpenseForm } from '../expenses/expense-form';
 import { DashboardSummaryCard } from './dashboard-summary-card';
+import type { ChartConfig } from '@/components/ui/chart';
+
+const chartConfig = {
+    income: { label: "Receita", color: "hsl(var(--chart-1))" },
+    expenses: { label: "Despesas", color: "hsl(var(--chart-2))" },
+} satisfies ChartConfig;
+
 
 const groupTransactionsByMonth = (incomes: Income[], expenses: Expense[]) => {
     const monthlyData: { [key: string]: { month: string; income: number; expenses: number } } = {};
     const monthNames = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
-
     const currentYear = new Date().getFullYear();
     for (let i = 0; i < 12; i++) {
         const monthKey = `${currentYear}-${i}`;
         monthlyData[monthKey] = { month: monthNames[i], income: 0, expenses: 0 };
     }
-
     incomes.forEach(income => {
         const date = new Date(income.date);
         if (date.getFullYear() === currentYear) {
@@ -28,7 +33,6 @@ const groupTransactionsByMonth = (incomes: Income[], expenses: Expense[]) => {
             }
         }
     });
-
     expenses.forEach(expense => {
         const date = new Date(expense.date);
         if (date.getFullYear() === currentYear) {
@@ -38,47 +42,37 @@ const groupTransactionsByMonth = (incomes: Income[], expenses: Expense[]) => {
             }
         }
     });
-
     return Object.values(monthlyData);
 }
 
 export function PersonalTab() {
     const { user } = useUser();
     const firestore = useFirestore();
-
     const incomesQuery = useMemoFirebase(() => {
         if (!user || !firestore) return null;
         return query(collection(firestore, `users/${user.uid}/incomes`), orderBy('date', 'desc'));
     }, [user, firestore]);
-
     const expensesQuery = useMemoFirebase(() => {
         if (!user || !firestore) return null;
         return query(collection(firestore, `users/${user.uid}/expenses`), orderBy('date', 'desc'));
     }, [user, firestore]);
-
     const incomeCategoriesQuery = useMemoFirebase(() => {
         if (!user || !firestore) return null;
         return query(collection(firestore, `users/${user.uid}/categories`), where('type', '==', 'Income'));
     }, [user, firestore]);
-
     const expenseCategoriesQuery = useMemoFirebase(() => {
         if (!user || !firestore) return null;
         return query(collection(firestore, `users/${user.uid}/categories`), where('type', '==', 'Expense'));
     }, [user, firestore]);
-
     const { data: incomes, isLoading: loadingIncomes } = useCollection<Income>(incomesQuery);
     const { data: expenses, isLoading: loadingExpenses } = useCollection<Expense>(expensesQuery);
     const { data: incomeCategories, isLoading: loadingIncomeCategories } = useCollection<Category>(incomeCategoriesQuery);
     const { data: expenseCategories, isLoading: loadingExpenseCategories } = useCollection<Category>(expenseCategoriesQuery);
-
-
     const isLoading = loadingIncomes || loadingExpenses || loadingIncomeCategories || loadingExpenseCategories;
-
     const chartData = useMemo(() => {
         if (!incomes || !expenses) return [];
         return groupTransactionsByMonth(incomes, expenses);
     }, [incomes, expenses]);
-
 
     if (isLoading) {
         return (
@@ -105,7 +99,8 @@ export function PersonalTab() {
                     data={chartData}
                     title="Visão Geral Anual"
                     description="Receitas e despesas dos últimos meses."
-                    actions={renderActions()}
+                    actions={renderActions}
+                    chartConfig={chartConfig}
                 />
             </div>
             <div className="lg:col-span-1">

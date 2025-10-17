@@ -1,6 +1,5 @@
 "use client";
-
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend } from "recharts";
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import {
   Card,
   CardContent,
@@ -10,11 +9,12 @@ import {
 } from "@/components/ui/card";
 import {
   ChartContainer,
-  ChartTooltip,
   ChartTooltipContent,
   ChartLegend,
   ChartLegendContent,
+  type ChartConfig
 } from "@/components/ui/chart";
+import { Loader2 } from "lucide-react";
 
 type ChartData = {
   month: string;
@@ -28,6 +28,12 @@ type RealEstateChartProps = {
     data: ChartData[];
 }
 
+const chartConfig = {
+    rents: { label: "Aluguéis", color: "hsl(var(--chart-1))" },
+    expenses: { label: "Despesas", color: "hsl(var(--chart-2))" },
+    net: { label: "Líquido", color: "hsl(var(--chart-3))" },
+} satisfies ChartConfig;
+
 const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
         const data = payload[0].payload;
@@ -36,32 +42,22 @@ const CustomTooltip = ({ active, payload, label }: any) => {
       return (
         <div className="bg-background border p-4 rounded-lg shadow-lg">
           <p className="font-bold font-headline">{label}</p>
-          <p className="text-green-500">Aluguéis: {data.rents.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
+          <p className="text-blue-500">Aluguéis: {data.rents.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
           <p className="text-red-500">Despesas: {data.expenses.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
           <p className={`${netColor} font-semibold`}>Líquido: {data.net.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
           {data.percentageChange !== null && (
              <p className={`${percentageColor} text-sm`}>
-                Variação: {data.percentageChange.toFixed(2)}%
+               Variação: {data.percentageChange.toFixed(2)}%
              </p>
           )}
         </div>
       );
     }
-  
     return null;
   };
 
 export function RealEstateChart({ data }: RealEstateChartProps) {
-  const chartConfig = {
-    rents: {
-      label: "Aluguéis",
-      color: "hsl(var(--chart-1))",
-    },
-    expenses: {
-      label: "Despesas",
-      color: "hsl(var(--chart-2))",
-    },
-  };
+  const hasData = data && data.length > 0 && data.some(d => d.rents > 0 || d.expenses > 0);
 
   return (
     <Card>
@@ -74,38 +70,28 @@ export function RealEstateChart({ data }: RealEstateChartProps) {
         </div>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={chartConfig} className="w-full">
-            <BarChart
-              data={data}
-              width={730}
-              height={350}
-              margin={{
-                top: 5,
-                right: 30,
-                left: 20,
-                bottom: 5,
-              }}
-            >
-              <CartesianGrid vertical={false} />
-              <XAxis
-                dataKey="month"
-                tickLine={false}
-                tickMargin={10}
-                axisLine={false}
-                stroke="hsl(var(--muted-foreground))"
-                fontSize={12}
-              />
-              <YAxis 
-                stroke="hsl(var(--muted-foreground))"
-                fontSize={12}
-                tickFormatter={(value) => `R$${value / 1000}k`}
-              />
-              <Tooltip content={<CustomTooltip />} />
-              <ChartLegend content={<ChartLegendContent />} />
-              <Bar dataKey="rents" fill="var(--color-rents)" radius={4} name="Aluguéis" />
-              <Bar dataKey="expenses" fill="var(--color-expenses)" radius={4} name="Despesas" />
-            </BarChart>
-        </ChartContainer>
+        <div className="min-h-[350px] w-full">
+            {!hasData ? (
+                 <div className="flex h-[350px] w-full items-center justify-center">
+                    <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                </div>
+            ) : (
+                <ChartContainer config={chartConfig} className="h-full w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={data}>
+                            <CartesianGrid vertical={false} />
+                            <XAxis dataKey="month" tickLine={false} tickMargin={10} axisLine={false} stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                            <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickFormatter={(value) => `R$${value / 1000}k`} />
+                            <Tooltip content={<CustomTooltip />} />
+                            <ChartLegend content={<ChartLegendContent />} />
+                            <Bar dataKey="rents" fill="var(--color-rents)" radius={4} name="Aluguéis" />
+                            <Bar dataKey="expenses" fill="var(--color-expenses)" radius={4} name="Despesas" />
+                            <Bar dataKey="net" fill="var(--color-net)" radius={4} name="Líquido" />
+                        </BarChart>
+                    </ResponsiveContainer>
+                </ChartContainer>
+            )}
+        </div>
       </CardContent>
     </Card>
   );

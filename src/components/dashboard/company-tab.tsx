@@ -1,7 +1,7 @@
 'use client';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, orderBy, where } from 'firebase/firestore';
+import { collection, query, orderBy, where, doc, setDoc } from 'firebase/firestore';
 import { OverviewChart } from "./overview-chart";
 import { Loader2, ArrowRight } from 'lucide-react';
 import type { Income, Expense, Category, Company } from '@/lib/types';
@@ -9,20 +9,29 @@ import Link from 'next/link';
 import { Button } from '../ui/button';
 import { IncomeForm } from '../company/incomes/income-form';
 import { ExpenseForm } from '../company/expenses/expense-form';
-import { CompanyHeader } from './company-header';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../ui/card';
+import { Input } from '../ui/input';
+import { Label } from '../ui/label';
+import { useToast } from '@/hooks/use-toast';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 import { DashboardSummaryCard } from './dashboard-summary-card';
+import { CompanyHeader } from './company-header';
+import type { ChartConfig } from '@/components/ui/chart';
 
+const chartConfig = {
+    income: { label: "Receita", color: "hsl(var(--chart-1))" },
+    expenses: { label: "Despesas", color: "hsl(var(--chart-2))" },
+} satisfies ChartConfig;
 
 const groupTransactionsByMonth = (incomes: Income[], expenses: Expense[]) => {
     const monthlyData: { [key: string]: { month: string; income: number; expenses: number } } = {};
     const monthNames = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
-
     const currentYear = new Date().getFullYear();
     for (let i = 0; i < 12; i++) {
         const monthKey = `${currentYear}-${i}`;
         monthlyData[monthKey] = { month: monthNames[i], income: 0, expenses: 0 };
     }
-
     incomes.forEach(income => {
         const date = new Date(income.date);
         if (date.getFullYear() === currentYear) {
@@ -32,7 +41,6 @@ const groupTransactionsByMonth = (incomes: Income[], expenses: Expense[]) => {
             }
         }
     });
-
     expenses.forEach(expense => {
         const date = new Date(expense.date);
         if (date.getFullYear() === currentYear) {
@@ -42,25 +50,20 @@ const groupTransactionsByMonth = (incomes: Income[], expenses: Expense[]) => {
             }
         }
     });
-
     return Object.values(monthlyData);
 }
-
 
 export function CompanyTab() {
     const { user } = useUser();
     const firestore = useFirestore();
-
+    
     const companyQuery = useMemoFirebase(() => {
         if (!user || !firestore) return null;
-        // For now, we assume a single company. This query will fetch all companies.
         return query(collection(firestore, `users/${user.uid}/company`));
     }, [user, firestore]);
 
     const { data: companies, isLoading: loadingCompany } = useCollection<Company>(companyQuery);
-    // For now, we'll work with the first company found.
     const company = companies?.[0];
-
 
     const incomesQuery = useMemoFirebase(() => {
         if (!user || !firestore) return null;
@@ -86,15 +89,13 @@ export function CompanyTab() {
     const { data: expenses, isLoading: loadingExpenses } = useCollection<Expense>(expensesQuery);
     const { data: incomeCategories, isLoading: loadingIncomeCategories } = useCollection<Category>(incomeCategoriesQuery);
     const { data: expenseCategories, isLoading: loadingExpenseCategories } = useCollection<Category>(expenseCategoriesQuery);
-
-
+    
     const isLoading = loadingCompany || loadingIncomes || loadingExpenses || loadingIncomeCategories || loadingExpenseCategories;
 
     const chartData = useMemo(() => {
         if (!incomes || !expenses) return [];
         return groupTransactionsByMonth(incomes, expenses);
     }, [incomes, expenses]);
-
 
     if (isLoading) {
         return (
@@ -104,19 +105,11 @@ export function CompanyTab() {
         );
     }
     
-    // Render the CompanyHeader which handles creation or editing
-    if (!user) return null;
     if (!company) {
-        return (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-             <CompanyHeader userId={user.uid} company={null} />
-          </div>
-        )
+        return <CompanyForm userId={user!.uid} company={null} />;
     }
 
-
     const hasData = incomes && expenses && (incomes.length > 0 || expenses.length > 0);
-
     const renderActions = () => {
         if (!user || !incomeCategories || !expenseCategories) return null;
         return (
@@ -135,18 +128,8 @@ export function CompanyTab() {
                     <h2 className="text-xl font-bold font-headline mb-2">Comece a Gerenciar as Finanças de {company.name}</h2>
                     <p className="text-muted-foreground mb-4">Cadastre suas receitas e despesas da empresa para ver seu dashboard financeiro.</p>
                     <div className='flex gap-4 justify-center'>
-                        <Button asChild>
-                            <Link href="/company/incomes">
-                                Adicionar Receita
-                                <ArrowRight className="ml-2 h-4 w-4" />
-                            </Link>
-                        </Button>
-                        <Button asChild variant="outline">
-                            <Link href="/company/expenses">
-                                Adicionar Despesa
-                                <ArrowRight className="ml-2 h-4 w-4" />
-                            </Link>
-                        </Button>
+                        <Button asChild><Link href="/company/incomes">Adicionar Receita<ArrowRight className="ml-2 h-4 w-4" /></Link></Button>
+                        <Button asChild variant="outline"><Link href="/company/expenses">Adicionar Despesa<ArrowRight className="ml-2 h-4 w-4" /></Link></Button>
                     </div>
                 </div>
             </div>
@@ -162,7 +145,8 @@ export function CompanyTab() {
                         data={chartData}
                         title={`Visão Geral de ${company.name}`}
                         description="Suas receitas e despesas da empresa nos últimos meses."
-                        actions={renderActions()}
+                        actions={renderActions}
+                        chartConfig={chartConfig}
                     />
                 </div>
                 <div className="lg:col-span-1">
