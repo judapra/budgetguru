@@ -6,9 +6,9 @@
       "type": "object",
       "description": "Represents a user of the Budget Guru application.",
       "properties": {
-        "id": { "type": "string", "description": "Unique identifier for the User entity." },
-        "email": { "type": "string", "description": "User's email address.", "format": "email" },
-        "name": { "type": "string", "description": "The full name of the user." }
+        "id": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "name": { "type": "string" }
       },
       "required": ["id", "email", "name"]
     },
@@ -18,9 +18,9 @@
       "type": "object",
       "description": "Represents a user's company.",
       "properties": {
-        "id": { "type": "string", "description": "Unique identifier for the Company entity." },
-        "userId": { "type": "string", "description": "Reference to User. (Relationship: User 1:1 Company)" },
-        "name": { "type": "string", "description": "The name of the company." }
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "name": { "type": "string" }
       },
       "required": ["id", "userId", "name"]
     },
@@ -30,13 +30,13 @@
       "type": "object",
       "description": "Represents an expense record.",
       "properties": {
-        "id": { "type": "string", "description": "Unique identifier for the Expense entity." },
-        "userId": { "type": "string", "description": "Reference to User. (Relationship: User 1:N Expense)" },
-        "categoryId": { "type": "string", "description": "Reference to Category. (Relationship: Category 1:N Expense)" },
-        "paymentMethod": { "type": "string", "description": "The method of payment used (e.g., credit card, cash)." },
-        "date": { "type": "string", "description": "The date of the expense.", "format": "date-time" },
-        "amount": { "type": "number", "description": "The amount of the expense." },
-        "details": { "type": "string", "description": "Detailed description of the expense." }
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "categoryId": { "type": "string" },
+        "paymentMethod": { "type": "string" },
+        "date": { "type": "string", "format": "date-time" },
+        "amount": { "type": "number" },
+        "details": { "type": "string" }
       },
       "required": ["id", "userId", "categoryId", "paymentMethod", "date", "amount", "details"]
     },
@@ -46,13 +46,13 @@
       "type": "object",
       "description": "Represents an income record.",
       "properties": {
-        "id": { "type": "string", "description": "Unique identifier for the Income entity." },
-        "userId": { "type": "string", "description": "Reference to User. (Relationship: User 1:N Income)" },
-        "categoryId": { "type": "string", "description": "Reference to Category. (Relationship: Category 1:N Income)" },
-        "receiptMethod": { "type": "string", "description": "The method of receipt (e.g., direct deposit, cash)." },
-        "date": { "type": "string", "description": "The date of the income.", "format": "date-time" },
-        "amount": { "type": "number", "description": "The amount of the income." },
-        "details": { "type": "string", "description": "Detailed description of the income." }
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "categoryId": { "type": "string" },
+        "receiptMethod": { "type": "string" },
+        "date": { "type": "string", "format": "date-time" },
+        "amount": { "type": "number" },
+        "details": { "type": "string" }
       },
       "required": ["id", "userId", "categoryId", "receiptMethod", "date", "amount", "details"]
     },
@@ -62,10 +62,10 @@
       "type": "object",
       "description": "Represents a category for income or expenses.",
       "properties": {
-        "id": { "type": "string", "description": "Unique identifier for the Category entity." },
-        "userId": { "type": "string", "description": "Reference to User. (Relationship: User 1:N Category)" },
-        "name": { "type": "string", "description": "The name of the category (e.g., Groceries, Salary)." },
-        "type": { "type": "string", "description": "The type of category (e.g., Income, Expense)." }
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "name": { "type": "string" },
+        "type": { "type": "string" }
       },
       "required": ["id", "userId", "name", "type"]
     },
@@ -75,14 +75,14 @@
       "type": "object",
       "description": "Represents a real estate property.",
       "properties": {
-        "id": { "type": "string", "description": "Unique identifier for the Property entity." },
-        "userId": { "type": "string", "description": "Reference to User. (Relationship: User 1:N Property)" },
-        "name": { "type": "string", "description": "The name of the property." },
-        "address": { "type": "string", "description": "The address of the property." },
-        "grossRent": { "type": "number", "description": "The gross rent of the property." },
-        "netRent": { "type": "number", "description": "The net rent of the property." },
-        "adminFee": { "type": "number", "description": "The administration fee for the property in percentage." },
-        "status": { "type": "string", "description": "The status of the property (e.g. Rented, Vacant).", "enum": ["Alugado", "Vazio"] }
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "name": { "type": "string" },
+        "address": { "type": "string" },
+        "grossRent": { "type": "number" },
+        "netRent": { "type": "number" },
+        "adminFee": { "type": "number" },
+        "status": { "type": "string", "enum": ["Alugado", "Vazio"] }
       },
       "required": ["id", "userId", "name", "address", "grossRent", "netRent", "adminFee", "status"]
     },
@@ -92,11 +92,11 @@
       "type": "object",
       "description": "Represents an expense associated with a real estate property.",
       "properties": {
-        "id": { "type": "string", "description": "Unique identifier for the PropertyExpense entity." },
-        "propertyId": { "type": "string", "description": "Reference to Property. (Relationship: Property 1:N PropertyExpense)" },
-        "date": { "type": "string", "description": "The date of the expense.", "format": "date-time" },
-        "description": { "type": "string", "description": "Description of the expense (e.g., IPTU, Condominium)." },
-        "amount": { "type": "number", "description": "The amount of the expense." }
+        "id": { "type": "string" },
+        "propertyId": { "type": "string" },
+        "date": { "type": "string", "format": "date-time" },
+        "description": { "type": "string" },
+        "amount": { "type": "number" }
       },
       "required": ["id", "propertyId", "date", "description", "amount"]
     },
@@ -106,16 +106,31 @@
       "type": "object",
       "description": "Represents a rent payment received for a property.",
       "properties": {
-        "id": { "type": "string", "description": "Unique identifier for the PropertyRent entity." },
-        "propertyId": { "type": "string", "description": "Reference to Property. (Relationship: Property 1:N PropertyRent)" },
-        "date": { "type": "string", "description": "The date the rent was received.", "format": "date-time" },
-        "amount": { "type": "number", "description": "The amount of the rent received." },
-        "details": { "type": "string", "description": "Optional details about the rent payment." },
-        "account": { "type": "string", "description": "The bank account where the rent was deposited." },
-        "discounts": { "type": "number", "description": "Any discounts applied to the rent payment." },
-        "additions": { "type": "number", "description": "Any additions or fees applied to the rent payment." }
+        "id": { "type": "string" },
+        "propertyId": { "type": "string" },
+        "date": { "type": "string", "format": "date-time" },
+        "amount": { "type": "number" },
+        "details": { "type": "string" },
+        "account": { "type": "string" },
+        "discounts": { "type": "number" },
+        "additions": { "type": "number" }
       },
       "required": ["id", "propertyId", "date", "amount", "account"]
+    },
+    "Budget": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Budget",
+      "type": "object",
+      "description": "Represents a monthly budget for a specific category.",
+      "properties": {
+        "id": { "type": "string", "description": "Unique identifier for the Budget entity." },
+        "userId": { "type": "string", "description": "Reference to the User." },
+        "categoryId": { "type": "string", "description": "Reference to the Category this budget applies to." },
+        "amount": { "type": "number", "description": "The budget limit amount." },
+        "month": { "type": "number", "description": "The month of the budget (e.g., 1 for January)." },
+        "year": { "type": "number", "description": "The year of the budget (e.g., 2025)." }
+      },
+      "required": ["id", "userId", "categoryId", "amount", "month", "year"]
     }
   },
   "auth": {
@@ -176,6 +191,16 @@
         }
       },
       {
+        "path": "/users/{userId}/budgets/{budgetId}",
+        "schema": { "$ref": "#/entities/Budget" },
+        "description": "Stores personal budget records.",
+        "permissions": {
+          "list": "request.auth.uid == userId",
+          "read": "request.auth.uid == userId",
+          "write": "request.auth.uid == userId"
+        }
+      },
+      {
         "path": "/users/{userId}/company_categories/{categoryId}",
         "schema": { "$ref": "#/entities/Category" },
         "description": "Stores company categories.",
@@ -199,6 +224,16 @@
         "path": "/users/{userId}/company_incomes/{incomeId}",
         "schema": { "$ref": "#/entities/Income" },
         "description": "Stores company income records.",
+        "permissions": {
+          "list": "request.auth.uid == userId",
+          "read": "request.auth.uid == userId",
+          "write": "request.auth.uid == userId"
+        }
+      },
+      {
+        "path": "/users/{userId}/company_budgets/{budgetId}",
+        "schema": { "$ref": "#/entities/Budget" },
+        "description": "Stores company budget records.",
         "permissions": {
           "list": "request.auth.uid == userId",
           "read": "request.auth.uid == userId",

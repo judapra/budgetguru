@@ -1,20 +1,6 @@
 'use client'
 
-import { useFormState } from 'react-dom';
 import React, { useEffect, useMemo } from 'react';
-import { useToast } from "@/hooks/use-toast";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { handleGenerateReport } from '@/lib/actions';
-import { SubmitButton } from './submit-button';
 import { RealEstateChart } from './real-estate-chart';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, getDocs } from 'firebase/firestore';
@@ -23,11 +9,7 @@ import { Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '../ui/button';
 import { ArrowRight } from 'lucide-react';
-
-const initialState = {
-  summary: null,
-  error: null,
-};
+import { RealEstateReport } from './real-estate-report';
 
 type MonthlyData = {
   month: string;
@@ -92,9 +74,6 @@ const groupRealEstateByMonth = (rents: PropertyRent[], expenses: PropertyExpense
 
 
 export function RealEstateTab() {
-  const { toast } = useToast();
-  const [state, formAction] = useFormState(handleGenerateReport, initialState);
-
   const { user } = useUser();
   const firestore = useFirestore();
 
@@ -112,7 +91,8 @@ export function RealEstateTab() {
   useEffect(() => {
     const fetchAllData = async () => {
         if (!properties || !firestore || !user) {
-            setIsLoading(false);
+            // If there are no properties, we are not technically loading anymore
+            if(!properties) setIsLoading(false);
             return;
         }
         
@@ -120,20 +100,25 @@ export function RealEstateTab() {
         let rents: PropertyRent[] = [];
         let expenses: PropertyExpense[] = [];
 
-        for (const prop of properties) {
-            const rentsQuery = query(collection(firestore, `users/${user.uid}/properties/${prop.id}/rents`));
-            const expensesQuery = query(collection(firestore, `users/${user.uid}/properties/${prop.id}/expenses`));
+        try {
+          for (const prop of properties) {
+              const rentsQuery = query(collection(firestore, `users/${user.uid}/properties/${prop.id}/rents`));
+              const expensesQuery = query(collection(firestore, `users/${user.uid}/properties/${prop.id}/expenses`));
 
-            const rentSnap = await getDocs(rentsQuery);
-            rentSnap.forEach(doc => rents.push({ id: doc.id, ...doc.data() } as PropertyRent));
+              const rentSnap = await getDocs(rentsQuery);
+              rentSnap.forEach(doc => rents.push({ id: doc.id, ...doc.data() } as PropertyRent));
 
-            const expenseSnap = await getDocs(expensesQuery);
-            expenseSnap.forEach(doc => expenses.push({ id: doc.id, ...doc.data() } as PropertyExpense));
+              const expenseSnap = await getDocs(expensesQuery);
+              expenseSnap.forEach(doc => expenses.push({ id: doc.id, ...doc.data() } as PropertyExpense));
+          }
+
+          setAllRents(rents);
+          setAllExpenses(expenses);
+        } catch (error) {
+          console.error("Failed to fetch real estate data:", error);
+        } finally {
+          setIsLoading(false);
         }
-
-        setAllRents(rents);
-        setAllExpenses(expenses);
-        setIsLoading(false);
     }
     fetchAllData();
   }, [properties, firestore, user]);
@@ -141,17 +126,6 @@ export function RealEstateTab() {
   const chartData = useMemo(() => {
     return groupRealEstateByMonth(allRents, allExpenses);
   }, [allRents, allExpenses]);
-
-
-  useEffect(() => {
-    if (state?.error) {
-      toast({
-        variant: "destructive",
-        title: "Falha ao Gerar Relatório",
-        description: state.error,
-      });
-    }
-  }, [state, toast]);
 
   if (isLoading) {
     return (
@@ -184,46 +158,7 @@ export function RealEstateTab() {
         {chartData && chartData.some(d => d.rents > 0 || d.expenses > 0) && (
             <RealEstateChart data={chartData} />
         )}
-      <Card>
-        <CardHeader>
-          <CardTitle className="font-headline">Análise de Portfólio Imobiliário com IA</CardTitle>
-          <CardDescription>
-            Insira os dados financeiros de seus imóveis para gerar um relatório com IA sobre despesas, receitas, patrimônio e ROI.
-          </CardDescription>
-        </CardHeader>
-        <form action={formAction}>
-          <CardContent className="space-y-4">
-            <div className="grid w-full gap-1.5">
-              <Label htmlFor="financialData">Dados Financeiros</Label>
-              <Textarea
-                id="financialData"
-                name="financialData"
-                placeholder="Ex: Imóvel A: Preço de compra R$500k, Hipoteca R$400k a 5% juros, Aluguel mensal R$3000, Impostos anuais R$5000, Seguro R$1200/ano, Reparos R$1000/ano..."
-                className="min-h-[150px]"
-                required
-              />
-              <p className="text-sm text-muted-foreground">
-                Forneça o máximo de detalhes possível para todos os seus imóveis para a análise mais precisa.
-              </p>
-            </div>
-            <SubmitButton />
-          </CardContent>
-        </form>
-        {state?.summary && (
-          <CardFooter>
-            <Card className="w-full bg-secondary/50 shadow-inner">
-              <CardHeader>
-                <CardTitle className="font-headline">Relatório Gerado</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="prose prose-sm dark:prose-invert max-w-none">
-                    <p className="whitespace-pre-wrap">{state.summary}</p>
-                </div>
-              </CardContent>
-            </Card>
-          </CardFooter>
-        )}
-      </Card>
+      <RealEstateReport />
     </div>
   );
 }
