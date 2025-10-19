@@ -11,7 +11,7 @@ import { useUser, useFirestore } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
 import { Loader2 } from 'lucide-react';
-import { EmailAuthProvider, reauthenticateWithCredential, updateEmail } from 'firebase/auth';
+import { EmailAuthProvider, reauthenticateWithCredential, verifyBeforeUpdateEmail } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
@@ -36,7 +36,6 @@ export function UpdateEmailForm() {
     },
   });
 
-  // Esta é a primeira versão da função que implementava a ordem correta
   async function onSubmit(values: z.infer<typeof emailSchema>) {
     if (!user || !auth?.currentUser || !firestore || !user.email) return;
 
@@ -55,20 +54,18 @@ export function UpdateEmailForm() {
       const credential = EmailAuthProvider.credential(user.email, values.password);
       await reauthenticateWithCredential(auth.currentUser, credential);
 
-      // Step 2: FIRST, update the Firestore user document
-      const userRef = doc(firestore, 'users', user.uid);
-      await setDoc(userRef, { email: values.newEmail }, { merge: true });
-      
-      // Step 3: THEN, update the email in Firebase Auth
-      await updateEmail(auth.currentUser, values.newEmail);
+      // Step 2: Use verifyBeforeUpdateEmail to handle the verification flow
+      await verifyBeforeUpdateEmail(auth.currentUser, values.newEmail);
       
       toast({
-        title: 'Sucesso!',
-        description: 'Seu e-mail foi atualizado. Você precisará fazer login novamente.',
+        title: 'Verificação necessária!',
+        description: 'Enviamos um link de verificação para o seu novo e-mail. Por favor, clique no link para concluir a alteração.',
+        duration: 8000,
       });
-      
-      // Step 4: Force sign out to make user log in with new email
-      await auth.signOut();
+
+      // The email in Auth will only update after verification.
+      // We will not update Firestore here. We can update it on the user's next login.
+      // This avoids the security rule violation.
 
     } catch (error: any) {
       console.error(error);
@@ -79,13 +76,8 @@ export function UpdateEmailForm() {
         description = 'Este e-mail já está sendo utilizado por outra conta.';
       } else if (error.code === 'auth/requires-recent-login') {
         description = 'Esta operação é sensível e requer autenticação recente. Faça login novamente antes de tentar alterar o e-mail.';
-      } else {
-        const permissionError = new FirestorePermissionError({
-            path: `users/${user.uid}`,
-            operation: 'update',
-            requestResourceData: { email: values.newEmail },
-        });
-        errorEmitter.emit('permission-error', permissionError);
+      } else if (error.code === 'auth/operation-not-allowed') {
+        description = 'A alteração de e-mail não está habilitada. Verifique as configurações do seu projeto Firebase.';
       }
 
       toast({
