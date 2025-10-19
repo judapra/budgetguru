@@ -4,7 +4,6 @@ import { generateRealEstateReport } from '@/ai/flows/real-estate-report-generato
 import { initializeFirebase } from '@/firebase/server';
 import type { Property, PropertyExpense, PropertyRent } from '@/lib/types';
 import { getAuth } from 'firebase-admin/auth';
-import { getFirestore } from 'firebase-admin/firestore';
 
 interface ReportState {
     summary: string | null;
@@ -21,35 +20,44 @@ async function getRealEstateData(userId: string): Promise<string> {
         return "O usuário não possui imóveis cadastrados.";
     }
 
-    let allDataString = "";
+    let allDataString = "Início dos Dados do Portfólio Imobiliário:\n\n";
 
     for (const propDoc of propertiesSnap.docs) {
         const property = propDoc.data() as Property;
-        allDataString += `Imóvel: ${property.name} (Endereço: ${property.address})\n`;
-        allDataString += `- Aluguel Bruto: ${property.grossRent}, Taxa Adm: ${property.adminFee}%, Aluguel Líquido: ${property.netRent}\n`;
+        allDataString += `## Imóvel: ${property.name}\n`;
+        allDataString += `- Endereço: ${property.address}\n`;
+        allDataString += `- Status: ${property.status}\n`;
+        allDataString += `- Aluguel Bruto Base: ${property.grossRent.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}\n`;
+        allDataString += `- Taxa de Administração: ${property.adminFee}%\n`;
+        allDataString += `- Aluguel Líquido Base: ${property.netRent.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}\n\n`;
         
         const rentsRef = propDoc.ref.collection('rents');
         const rentsSnap = await rentsRef.get();
         if (!rentsSnap.empty) {
-            allDataString += "- Aluguéis Recebidos:\n";
+            allDataString += "### Aluguéis Recebidos:\n";
             rentsSnap.forEach(rentDoc => {
                 const rent = rentDoc.data() as PropertyRent;
-                allDataString += `  - Data: ${new Date(rent.date).toLocaleDateString()}, Valor: ${rent.amount}\n`;
+                const receivedAmount = rent.isAdjustment 
+                        ? rent.amount - (rent.amount * property.adminFee / 100) + (rent.additions || 0) - (rent.discounts || 0)
+                        : rent.amount + (rent.additions || 0) - (rent.discounts || 0);
+                allDataString += `  - Data: ${new Date(rent.date).toLocaleDateString('pt-BR')}, Valor Recebido: ${receivedAmount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}${rent.isAdjustment ? ' (Reajuste)' : ''}\n`;
             });
+            allDataString += "\n";
         }
 
         const expensesRef = propDoc.ref.collection('expenses');
         const expensesSnap = await expensesRef.get();
          if (!expensesSnap.empty) {
-            allDataString += "- Despesas:\n";
+            allDataString += "### Despesas do Imóvel:\n";
             expensesSnap.forEach(expenseDoc => {
                 const expense = expenseDoc.data() as PropertyExpense;
-                allDataString += `  - Data: ${new Date(expense.date).toLocaleDateString()}, Descrição: ${expense.description}, Valor: ${expense.amount}\n`;
+                allDataString += `  - Data: ${new Date(expense.date).toLocaleDateString('pt-br')}, Descrição: ${expense.description}, Valor: ${expense.amount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}\n`;
             });
         }
-        allDataString += "\n";
+        allDataString += "---\n\n";
     }
 
+    allDataString += "Fim dos Dados do Portfólio Imobiliário."
     return allDataString;
 }
 

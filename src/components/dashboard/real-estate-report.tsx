@@ -36,27 +36,24 @@ export function RealEstateReport() {
   return (
       <Card>
         <CardHeader>
-          <CardTitle className="font-headline">Análise de Portfólio Imobiliário com IA</CardTitle>
+          <CardTitle className="font-headline">Análise de Portfólio com IA</CardTitle>
           <CardDescription>
-            Clique no botão abaixo para gerar um relatório automático com IA sobre despesas, receitas, patrimônio e ROI dos seus imóveis.
+            Clique no botão abaixo para que a IA analise todos os dados dos seus imóveis (aluguéis e despesas) e gere um relatório de performance financeira.
           </CardDescription>
         </CardHeader>
         <form action={formAction}>
           <CardContent>
             <SubmitButton />
-             <p className="text-sm text-muted-foreground mt-2">
-                A IA analisará todos os dados de aluguéis e despesas que você já cadastrou.
-              </p>
           </CardContent>
         </form>
         {state?.summary && (
           <CardFooter>
-            <Card className="w-full bg-secondary/50 shadow-inner">
+            <Card className="w-full bg-muted/50 shadow-inner">
               <CardHeader>
-                <CardTitle className="font-headline">Relatório Gerado</CardTitle>
+                <CardTitle className="font-headline">Relatório de Performance</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="prose prose-sm dark:prose-invert max-w-none">
+                <div className="prose prose-sm dark:prose-invert max-w-none text-foreground">
                     <p className="whitespace-pre-wrap">{state.summary}</p>
                 </div>
               </CardContent>
