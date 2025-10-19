@@ -7,6 +7,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui
 import { Progress } from '../ui/progress';
 import { useMemo } from 'react';
 import { BudgetForm } from './budget-form';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
+
 
 interface BudgetListProps {
     userId: string;
@@ -118,7 +120,7 @@ export function BudgetList({ userId, month, year, budgetType }: BudgetListProps)
             <CardContent className="space-y-6">
                 {budgetInfo.map(info => {
                     const progressColor = info.percentage > 90 ? 'bg-red-500' : info.percentage > 75 ? 'bg-yellow-500' : 'bg-primary';
-                    const budget = budgets?.find(b => b.id === info.budgetId);
+                    const budget = budgets?.find(b => b.categoryId === info.categoryId);
 
                     return (
                         <div key={info.categoryId} className="group">
@@ -141,7 +143,7 @@ export function BudgetList({ userId, month, year, budgetType }: BudgetListProps)
                             <TooltipProvider>
                                 <Tooltip>
                                     <TooltipTrigger asChild>
-                                        <Progress value={info.percentage} indicatorClassName={progressColor} />
+                                        <Progress value={info.percentage} className={progressColor} />
                                     </TooltipTrigger>
                                     <TooltipContent>
                                         <p>{info.percentage.toFixed(0)}% do orçamento utilizado</p>
