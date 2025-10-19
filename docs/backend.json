@@ -279,9 +279,7 @@
         "permissions": {
           "list": "request.auth.uid == userId",
           "read": "request.auth.uid == userId",
-          "create": "request.auth.uid == userId",
-          "update": "request.auth.uid == userId",
-          "delete": "request.auth.uid == userId"
+          "write": "request.auth.uid == userId"
         }
       },
       {
