@@ -113,7 +113,8 @@
         "details": { "type": "string" },
         "account": { "type": "string" },
         "discounts": { "type": "number" },
-        "additions": { "type": "number" }
+        "additions": { "type": "number" },
+        "isAdjustment": { "type": "boolean"}
       },
       "required": ["id", "propertyId", "date", "amount", "account"]
     },

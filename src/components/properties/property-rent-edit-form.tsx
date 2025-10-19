@@ -145,7 +145,7 @@ export function PropertyRentEditForm({ userId, propertyId, propertyName, rent, b
         destination: rent.destination,
         isAdjustment: rent.isAdjustment,
     });
-  }, [rent, form, open]);
+  }, [rent, form, open, adminFee]);
   
 
   const isAdjustment = form.watch('isAdjustment');

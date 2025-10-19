@@ -95,7 +95,7 @@ export type Transaction = {
     additions?: number;
     destination: 'Personal' | 'Company';
     userId: string;
-    isAdjustment?: boolean;
+    isAdjustment: boolean;
   };
 
   export type Company = {
