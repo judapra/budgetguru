@@ -33,6 +33,7 @@ export function MainNav({
     { href: '/company/expenses', label: 'Despesas da Empresa' },
     { href: '/company/incomes', label: 'Receitas da Empresa' },
     { href: '/company/categories', label: 'Categorias da Empresa' },
+    { href: '/company/budgets', label: 'Orçamentos da Empresa' },
   ]
 
   return (
