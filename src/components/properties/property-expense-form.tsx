@@ -1,4 +1,3 @@
-
 'use client';
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
@@ -113,12 +112,12 @@ export function PropertyExpenseForm({ userId, propertyId, propertyName, expense 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (!firestore || !user) return;
     setIsSubmitting(true);
-
-    if (isEditing && expense) {
-        // --- EDIT LOGIC ---
-        const batch = writeBatch(firestore);
-        try {
-            // Find the old general expense to delete it
+    
+    try {
+        if (isEditing && expense) {
+            const batch = writeBatch(firestore);
+            
+            // Delete old general expense entry
             const oldCollectionName = expense.destination === 'Personal' ? 'expenses' : 'company_expenses';
             const generalExpenseQuery = query(collection(firestore, `users/${user.uid}/${oldCollectionName}`), where("propertyExpenseId", "==", expense.id));
             const generalExpenseSnap = await getDocs(generalExpenseQuery);
@@ -127,12 +126,11 @@ export function PropertyExpenseForm({ userId, propertyId, propertyName, expense 
                 batch.delete(generalExpenseSnap.docs[0].ref);
             }
 
-            // Get category for the new general expense
+            // Create new general expense entry
             const newCategoryCollectionName = values.destination === 'Personal' ? 'categories' : 'company_categories';
             const categoryDoc = await getOrCreateCategory(firestore, user.uid, 'Despesa de Imóvel', 'Expense', newCategoryCollectionName);
             const categoryId = categoryDoc.id;
 
-            // Create the new general expense
             const newGeneralExpenseCollectionName = values.destination === 'Personal' ? 'expenses' : 'company_expenses';
             const newGeneralExpenseRef = doc(collection(firestore, `users/${user.uid}/${newGeneralExpenseCollectionName}`));
             batch.set(newGeneralExpenseRef, {
@@ -153,27 +151,32 @@ export function PropertyExpenseForm({ userId, propertyId, propertyName, expense 
             toast({ title: 'Sucesso!', description: 'Despesa do imóvel atualizada.' });
             setOpen(false);
 
-        } catch (error) {
-            console.error("Error updating property expense:", error);
-            toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível atualizar a despesa.' });
-            errorEmitter.emit('permission-error', new FirestorePermissionError({ path: `users/${userId}/properties/${propertyId}/expenses`, operation: 'write' }));
-        }
+        } else {
+            // --- CREATE LOGIC ---
+            let newPropertyExpenseId: string | null = null;
+            const batch = writeBatch(firestore);
 
-    } else {
-        // --- CREATE LOGIC ---
-        let newPropertyExpenseId: string | null = null;
-        try {
+            // Create the specific property expense
+            const expenseRef = doc(collection(firestore, `users/${userId}/properties/${propertyId}/expenses`));
+            newPropertyExpenseId = expenseRef.id;
+            
+            const expenseData: Omit<PropertyExpense, 'id'> = { 
+                userId,
+                propertyId,
+                date: values.date.toISOString(), 
+                description: values.description,
+                amount: values.amount,
+                destination: values.destination
+            };
+            batch.set(expenseRef, expenseData);
+            
+            // Create the corresponding general expense
             const categoryCollectionName = values.destination === 'Personal' ? 'categories' : 'company_categories';
             const categoryDoc = await getOrCreateCategory(firestore, user.uid, 'Despesa de Imóvel', 'Expense', categoryCollectionName);
             const categoryId = categoryDoc.id;
 
-            const expensesCollection = collection(firestore, `users/${userId}/properties/${propertyId}/expenses`);
-            const expenseData = { ...values, date: values.date.toISOString(), propertyId, userId };
-            const newPropertyExpenseDocRef = await addDoc(expensesCollection, expenseData);
-            newPropertyExpenseId = newPropertyExpenseDocRef.id;
-
             const generalExpenseCollectionName = values.destination === 'Personal' ? 'expenses' : 'company_expenses';
-            const generalExpenseCollectionRef = collection(firestore, `users/${user.uid}/${generalExpenseCollectionName}`);
+            const generalExpenseRef = doc(collection(firestore, `users/${user.uid}/${generalExpenseCollectionName}`));
             const generalExpenseData = {
                 amount: values.amount,
                 categoryId: categoryId,
@@ -183,29 +186,33 @@ export function PropertyExpenseForm({ userId, propertyId, propertyName, expense 
                 userId: user.uid,
                 propertyExpenseId: newPropertyExpenseId,
             };
-            await addDoc(generalExpenseCollectionRef, generalExpenseData);
-
+            batch.set(generalExpenseRef, generalExpenseData);
+            
+            await batch.commit();
+            
             toast({ title: 'Sucesso!', description: 'Despesa do imóvel adicionada.' });
             form.reset();
             setOpen(false);
-        } catch (error) {
-            console.error("Error saving property expense:", error);
-            if (newPropertyExpenseId) {
-                await deleteDoc(doc(firestore, `users/${userId}/properties/${propertyId}/expenses`, newPropertyExpenseId));
-            }
-            toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível salvar a despesa.' });
-            errorEmitter.emit('permission-error', new FirestorePermissionError({ path: `users/${userId}/properties/${propertyId}/expenses`, operation: 'create' }));
         }
+    } catch (error: any) {
+        console.error("Error saving property expense:", error);
+        toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível salvar a despesa. Verifique as permissões.' });
+        
+        const permissionError = new FirestorePermissionError({
+            path: isEditing ? `users/${userId}/properties/${propertyId}/expenses/${expense.id}` : `users/${userId}/properties/${propertyId}/expenses`,
+            operation: isEditing ? 'update' : 'create',
+        });
+        errorEmitter.emit('permission-error', permissionError);
+    } finally {
+        setIsSubmitting(false);
     }
-
-    setIsSubmitting(false);
   }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {isEditing ? (
-             <Button variant="ghost" size="icon" className="h-6 w-6">
+            <Button variant="ghost" size="icon" className="h-6 w-6">
                 <Pencil className="h-3 w-3" />
             </Button>
         ) : (
@@ -221,7 +228,7 @@ export function PropertyExpenseForm({ userId, propertyId, propertyName, expense 
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-             <FormField
+              <FormField
                 control={form.control}
                 name="destination"
                 render={({ field }) => (

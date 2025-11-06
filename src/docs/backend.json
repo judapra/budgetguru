@@ -5,11 +5,7 @@
       "title": "User",
       "type": "object",
       "description": "Represents a user of the Budget Guru application.",
-      "properties": {
-        "id": { "type": "string" },
-        "email": { "type": "string", "format": "email" },
-        "name": { "type": "string" }
-      },
+      "properties": { "id": { "type": "string" }, "email": { "type": "string", "format": "email" }, "name": { "type": "string" } },
       "required": ["id", "email", "name"]
     },
     "Company": {
@@ -17,11 +13,7 @@
       "title": "Company",
       "type": "object",
       "description": "Represents a user's company.",
-      "properties": {
-        "id": { "type": "string" },
-        "userId": { "type": "string" },
-        "name": { "type": "string" }
-      },
+      "properties": { "id": { "type": "string" }, "userId": { "type": "string" }, "name": { "type": "string" } },
       "required": ["id", "userId", "name"]
     },
     "Expense": {
@@ -29,15 +21,7 @@
       "title": "Expense",
       "type": "object",
       "description": "Represents an expense record.",
-      "properties": {
-        "id": { "type": "string" },
-        "userId": { "type": "string" },
-        "categoryId": { "type": "string" },
-        "paymentMethod": { "type": "string" },
-        "date": { "type": "string", "format": "date-time" },
-        "amount": { "type": "number" },
-        "details": { "type": "string" }
-      },
+      "properties": { "id": { "type": "string" }, "userId": { "type": "string" }, "categoryId": { "type": "string" }, "paymentMethod": { "type": "string" }, "date": { "type": "string", "format": "date-time" }, "amount": { "type": "number" }, "details": { "type": "string" } },
       "required": ["id", "userId", "categoryId", "paymentMethod", "date", "amount", "details"]
     },
     "Income": {
@@ -45,15 +29,7 @@
       "title": "Income",
       "type": "object",
       "description": "Represents an income record.",
-      "properties": {
-        "id": { "type": "string" },
-        "userId": { "type": "string" },
-        "categoryId": { "type": "string" },
-        "receiptMethod": { "type": "string" },
-        "date": { "type": "string", "format": "date-time" },
-        "amount": { "type": "number" },
-        "details": { "type": "string" }
-      },
+      "properties": { "id": { "type": "string" }, "userId": { "type": "string" }, "categoryId": { "type": "string" }, "receiptMethod": { "type": "string" }, "date": { "type": "string", "format": "date-time" }, "amount": { "type": "number" }, "details": { "type": "string" } },
       "required": ["id", "userId", "categoryId", "receiptMethod", "date", "amount", "details"]
     },
     "Category": {
@@ -61,12 +37,7 @@
       "title": "Category",
       "type": "object",
       "description": "Represents a category for income or expenses.",
-      "properties": {
-        "id": { "type": "string" },
-        "userId": { "type": "string" },
-        "name": { "type": "string" },
-        "type": { "type": "string" }
-      },
+      "properties": { "id": { "type": "string" }, "userId": { "type": "string" }, "name": { "type": "string" }, "type": { "type": "string" } },
       "required": ["id", "userId", "name", "type"]
     },
     "Property": {
@@ -74,16 +45,7 @@
       "title": "Property",
       "type": "object",
       "description": "Represents a real estate property.",
-      "properties": {
-        "id": { "type": "string" },
-        "userId": { "type": "string" },
-        "name": { "type": "string" },
-        "address": { "type": "string" },
-        "grossRent": { "type": "number" },
-        "netRent": { "type": "number" },
-        "adminFee": { "type": "number" },
-        "status": { "type": "string", "enum": ["Alugado", "Vazio"] }
-      },
+      "properties": { "id": { "type": "string" }, "userId": { "type": "string" }, "name": { "type": "string" }, "address": { "type": "string" }, "grossRent": { "type": "number" }, "netRent": { "type": "number" }, "adminFee": { "type": "number" }, "status": { "type": "string", "enum": ["Alugado", "Vazio"] } },
       "required": ["id", "userId", "name", "address", "grossRent", "netRent", "adminFee", "status"]
     },
     "PropertyExpense": {
@@ -91,13 +53,7 @@
       "title": "PropertyExpense",
       "type": "object",
       "description": "Represents an expense associated with a real estate property.",
-      "properties": {
-        "id": { "type": "string" },
-        "propertyId": { "type": "string" },
-        "date": { "type": "string", "format": "date-time" },
-        "description": { "type": "string" },
-        "amount": { "type": "number" }
-      },
+      "properties": { "id": { "type": "string" }, "propertyId": { "type": "string" }, "date": { "type": "string", "format": "date-time" }, "description": { "type": "string" }, "amount": { "type": "number" } },
       "required": ["id", "propertyId", "date", "description", "amount"]
     },
     "PropertyRent": {
@@ -105,17 +61,7 @@
       "title": "PropertyRent",
       "type": "object",
       "description": "Represents a rent payment received for a property.",
-      "properties": {
-        "id": { "type": "string" },
-        "propertyId": { "type": "string" },
-        "date": { "type": "string", "format": "date-time" },
-        "amount": { "type": "number" },
-        "details": { "type": "string" },
-        "account": { "type": "string" },
-        "discounts": { "type": "number" },
-        "additions": { "type": "number" },
-        "isAdjustment": { "type": "boolean"}
-      },
+      "properties": { "id": { "type": "string" }, "propertyId": { "type": "string" }, "date": { "type": "string", "format": "date-time" }, "amount": { "type": "number" }, "details": { "type": "string" }, "account": { "type": "string" }, "discounts": { "type": "number" }, "additions": { "type": "number" }, "isAdjustment": { "type": "boolean"} },
       "required": ["id", "propertyId", "date", "amount", "account"]
     },
     "Budget": {
@@ -123,14 +69,7 @@
       "title": "Budget",
       "type": "object",
       "description": "Represents a monthly budget for a specific category.",
-      "properties": {
-        "id": { "type": "string", "description": "Unique identifier for the Budget entity." },
-        "userId": { "type": "string", "description": "Reference to the User." },
-        "categoryId": { "type": "string", "description": "Reference to the Category this budget applies to." },
-        "amount": { "type": "number", "description": "The budget limit amount." },
-        "month": { "type": "number", "description": "The month of the budget (e.g., 1 for January)." },
-        "year": { "type": "number", "description": "The year of the budget (e.g., 2025)." }
-      },
+      "properties": { "id": { "type": "string" }, "userId": { "type": "string" }, "categoryId": { "type": "string" }, "amount": { "type": "number" }, "month": { "type": "number" }, "year": { "type": "number" } },
       "required": ["id", "userId", "categoryId", "amount", "month", "year"]
     }
   },
@@ -146,110 +85,67 @@
         "path": "/users/{userId}",
         "schema": { "$ref": "#/entities/User" },
         "description": "Stores user profile information.",
-        "permissions": {
-          "read": "request.auth.uid == userId",
-          "write": "request.auth.uid == userId",
-          "get": "request.auth.uid == userId"
-        }
+        "permissions": { "read": "request.auth.uid == userId", "write": "request.auth.uid == userId", "get": "request.auth.uid == userId" }
       },
       {
         "path": "/users/{userId}/company/{companyId}",
         "schema": { "$ref": "#/entities/Company" },
         "description": "Stores user's company information.",
-        "permissions": {
-          "read": "request.auth.uid == userId",
-          "write": "request.auth.uid == userId"
-        }
+        "permissions": { "read": "request.auth.uid == userId", "write": "request.auth.uid == userId" }
       },
       {
         "path": "/users/{userId}/categories/{categoryId}",
         "schema": { "$ref": "#/entities/Category" },
         "description": "Stores personal categories.",
-        "permissions": {
-          "list": "request.auth.uid == userId",
-          "read": "request.auth.uid == userId",
-          "write": "request.auth.uid == userId"
-        }
+        "permissions": { "list": "request.auth.uid == userId", "read": "request.auth.uid == userId", "write": "request.auth.uid == userId" }
       },
       {
         "path": "/users/{userId}/expenses/{expenseId}",
         "schema": { "$ref": "#/entities/Expense" },
         "description": "Stores personal expense records.",
-        "permissions": {
-          "list": "request.auth.uid == userId",
-          "read": "request.auth.uid == userId",
-          "write": "request.auth.uid == userId"
-        }
+        "permissions": { "list": "request.auth.uid == userId", "read": "request.auth.uid == userId", "write": "request.auth.uid == userId" }
       },
       {
         "path": "/users/{userId}/incomes/{incomeId}",
         "schema": { "$ref": "#/entities/Income" },
         "description": "Stores personal income records.",
-        "permissions": {
-          "list": "request.auth.uid == userId",
-          "read": "request.auth.uid == userId",
-          "write": "request.auth.uid == userId"
-        }
+        "permissions": { "list": "request.auth.uid == userId", "read": "request.auth.uid == userId", "write": "request.auth.uid == userId" }
       },
       {
         "path": "/users/{userId}/budgets/{budgetId}",
         "schema": { "$ref": "#/entities/Budget" },
         "description": "Stores personal budget records.",
-        "permissions": {
-          "list": "request.auth.uid == userId",
-          "read": "request.auth.uid == userId",
-          "write": "request.auth.uid == userId"
-        }
+        "permissions": { "list": "request.auth.uid == userId", "read": "request.auth.uid == userId", "write": "request.auth.uid == userId" }
       },
       {
         "path": "/users/{userId}/company_categories/{categoryId}",
         "schema": { "$ref": "#/entities/Category" },
         "description": "Stores company categories.",
-        "permissions": {
-          "list": "request.auth.uid == userId",
-          "read": "request.auth.uid == userId",
-          "write": "request.auth.uid == userId"
-        }
+        "permissions": { "list": "request.auth.uid == userId", "read": "request.auth.uid == userId", "write": "request.auth.uid == userId" }
       },
       {
         "path": "/users/{userId}/company_expenses/{expenseId}",
         "schema": { "$ref": "#/entities/Expense" },
         "description": "Stores company expense records.",
-        "permissions": {
-          "list": "request.auth.uid == userId",
-          "read": "request.auth.uid == userId",
-          "write": "request.auth.uid == userId"
-        }
+        "permissions": { "list": "request.auth.uid == userId", "read": "request.auth.uid == userId", "write": "request.auth.uid == userId" }
       },
       {
         "path": "/users/{userId}/company_incomes/{incomeId}",
         "schema": { "$ref": "#/entities/Income" },
         "description": "Stores company income records.",
-        "permissions": {
-          "list": "request.auth.uid == userId",
-          "read": "request.auth.uid == userId",
-          "write": "request.auth.uid == userId"
-        }
+        "permissions": { "list": "request.auth.uid == userId", "read": "request.auth.uid == userId", "write": "request.auth.uid == userId" }
       },
       {
         "path": "/users/{userId}/company_budgets/{budgetId}",
         "schema": { "$ref": "#/entities/Budget" },
         "description": "Stores company budget records.",
-        "permissions": {
-          "list": "request.auth.uid == userId",
-          "read": "request.auth.uid == userId",
-          "write": "request.auth.uid == userId"
-        }
+        "permissions": { "list": "request.auth.uid == userId", "read": "request.auth.uid == userId", "write": "request.auth.uid == userId" }
       },
       {
         "path": "/users/{userId}/properties/{propertyId}",
         "schema": { "$ref": "#/entities/Property" },
         "description": "Stores properties managed by a user.",
-        "permissions": {
-          "list": "request.auth.uid == userId",
-          "read": "request.auth.uid == userId",
-          "write": "request.auth.uid == userId"
-        }
+        "permissions": { "list": "request.auth.uid == userId", "read": "request.auth.uid == userId", "write": "request.auth.uid == userId" }
       },
       {
         "path": "/users/{userId}/properties/{propertyId}/expenses/{propertyExpenseId}",
@@ -265,13 +161,9 @@
         "path": "/users/{userId}/properties/{propertyId}/rents/{rentId}",
         "schema": { "$ref": "#/entities/PropertyRent" },
         "description": "Stores rent payments received for a specific property.",
-        "permissions": {
-          "list": "request.auth.uid == userId",
-          "read": "request.auth.uid == userId",
-          "write": "request.auth.uid == userId"
-        }
+        "permissions": { "list": "request.auth.uid == userId", "read": "request.auth.uid == userId", "write": "request.auth.uid == userId" }
       }
     ],
-    "reasoning": "The Firestore structure is designed to ensure data isolation between users and efficient querying. Each user has their own dedicated space for personal and business finances (expenses, incomes, categories) and properties, enabling secure and scalable access control. This design leverages path-based ownership for private data. The design ensures Authorization Independence by avoiding `get()` calls in security rules, relying solely on `request.auth.uid` and the hierarchical path structure to validate ownership. Segregation is achieved as all documents within a user's collection share the same security posture. This makes securing `list` operations straightforward, ensuring that users can only access their own data (QAPs). The structure facilitates the integrity of ownership by associating each document with a specific `userId`. This explicit association, combined with Firestore security rules, guarantees that only authenticated users can access and manipulate their own data."
+    "reasoning": "The Firestore structure is designed to ensure data isolation..."
   }
 }
