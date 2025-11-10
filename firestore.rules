@@ -1,3 +1,4 @@
+
 /**
  * @fileoverview Firestore Security Rules for Budget Guru.
  *
@@ -179,9 +180,9 @@ service cloud.firestore {
 
       allow get: if isSignedIn() && isOwner(userId);
       allow list: if isSignedIn() && isOwner(userId);
-      allow create: if isSignedIn() && isOwner(userId) && request.resource.data.propertyId == propertyId;
+      allow create: if isSignedIn() && isOwner(userId) && request.resource.data.userId == userId && request.resource.data.propertyId == propertyId;
       allow update: if isSignedIn() && isOwner(userId) && request.resource.data.propertyId == propertyId;
-      allow delete: if isSignedIn() && isOwner(userId) && request.resource.data.propertyId == propertyId;
+      allow delete: if isSignedIn() && isOwner(userId) && resource.data.propertyId == propertyId;
     }
   }
 }
