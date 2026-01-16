@@ -103,7 +103,8 @@
         "status": { "type": "string", "description": "The status of the property (e.g. Rented, Vacant).", "enum": ["Alugado", "Vazio"] },
         "tenantName": { "type": "string", "description": "The name of the tenant. If present, status is 'Alugado'." },
         "tenantPhone": { "type": "string", "description": "The phone number of the tenant." },
-        "iptuContributorNumber": { "type": "string", "description": "The IPTU contributor number for the property." }
+        "iptuContributorNumber": { "type": "string", "description": "The IPTU contributor number for the property." },
+        "iptuUrl": { "type": "string", "description": "The URL for the city's IPTU website." }
       },
       "required": ["id", "userId", "name", "address", "grossRent", "netRent", "adminFee", "status"]
     },

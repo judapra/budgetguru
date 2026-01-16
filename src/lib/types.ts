@@ -62,6 +62,7 @@ export type Transaction = {
     tenantName?: string;
     tenantPhone?: string;
     iptuContributorNumber?: string;
+    iptuUrl?: string;
   };
   
   export type PropertyExpense = {

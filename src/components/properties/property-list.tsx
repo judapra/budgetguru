@@ -19,7 +19,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import type { Property } from '@/lib/types';
 import { Button } from '@/components/ui/button';
-import { Trash2, Home, MapPin, User, Phone, ToggleLeft, ToggleRight, FileDigit } from 'lucide-react';
+import { Trash2, Home, MapPin, User, Phone, ToggleLeft, ToggleRight, FileDigit, Link as LinkIcon } from 'lucide-react';
 import { useFirestore } from '@/firebase';
 import { deleteDoc, doc, setDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
@@ -107,7 +107,13 @@ export function PropertyList({ properties, userId }: PropertyListProps) {
                         </CardDescription>
                          {property.iptuContributorNumber && (
                             <CardDescription className="flex items-center gap-1 pt-1 text-xs">
-                                <FileDigit className="h-3 w-3"/> Nº Contribuinte: {property.iptuContributorNumber}
+                                <FileDigit className="h-3 w-3"/>
+                                <span>Nº Contribuinte: {property.iptuContributorNumber}</span>
+                                {property.iptuUrl && (
+                                    <a href={property.iptuUrl} target="_blank" rel="noopener noreferrer" title="Abrir link do IPTU" className="ml-1 text-primary hover:underline">
+                                        <LinkIcon className="h-3 w-3" />
+                                    </a>
+                                )}
                             </CardDescription>
                         )}
                     </div>

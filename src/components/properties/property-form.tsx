@@ -37,6 +37,7 @@ const formSchema = z.object({
   name: z.string().min(2, 'O nome do imóvel é obrigatório.'),
   address: z.string().min(5, 'O endereço é obrigatório.'),
   iptuContributorNumber: z.string().optional(),
+  iptuUrl: z.string().url('Por favor, insira uma URL válida.').optional().or(z.literal('')),
   grossRent: z.coerce.number().min(0, 'O valor deve ser positivo.'),
   adminFee: z.coerce.number().min(0, 'A taxa deve ser positiva.'),
   tenantName: z.string().optional(),
@@ -65,6 +66,7 @@ export function PropertyForm({ userId, property, className }: PropertyFormProps)
       name: '',
       address: '',
       iptuContributorNumber: '',
+      iptuUrl: '',
       grossRent: 0,
       adminFee: 0,
       tenantName: '',
@@ -79,6 +81,7 @@ export function PropertyForm({ userId, property, className }: PropertyFormProps)
         name: property.name,
         address: property.address,
         iptuContributorNumber: property.iptuContributorNumber || '',
+        iptuUrl: property.iptuUrl || '',
         grossRent: property.grossRent,
         adminFee: property.adminFee,
         tenantName: property.tenantName || '',
@@ -90,6 +93,7 @@ export function PropertyForm({ userId, property, className }: PropertyFormProps)
         name: '',
         address: '',
         iptuContributorNumber: '',
+        iptuUrl: '',
         grossRent: 0,
         adminFee: 0,
         tenantName: '',
@@ -209,7 +213,7 @@ export function PropertyForm({ userId, property, className }: PropertyFormProps)
               control={form.control}
               name="address"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="md:col-span-2">
                   <FormLabel>Endereço</FormLabel>
                   <FormControl>
                     <Input placeholder="Ex: Rua das Flores, 123, São Paulo, SP" {...field} />
@@ -218,7 +222,7 @@ export function PropertyForm({ userId, property, className }: PropertyFormProps)
                 </FormItem>
               )}
             />
-             <FormField
+            <FormField
               control={form.control}
               name="iptuContributorNumber"
               render={({ field }) => (
@@ -226,6 +230,19 @@ export function PropertyForm({ userId, property, className }: PropertyFormProps)
                   <FormLabel>Nº do Contribuinte (IPTU)</FormLabel>
                   <FormControl>
                     <Input placeholder="Ex: 123.456.7890-1" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="iptuUrl"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Link para consulta IPTU</FormLabel>
+                  <FormControl>
+                    <Input type="url" placeholder="https://prefeitura.sp.gov.br/iptu" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
