@@ -36,6 +36,7 @@ import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
 const formSchema = z.object({
   name: z.string().min(2, 'O nome do imóvel é obrigatório.'),
   address: z.string().min(5, 'O endereço é obrigatório.'),
+  iptuContributorNumber: z.string().optional(),
   grossRent: z.coerce.number().min(0, 'O valor deve ser positivo.'),
   adminFee: z.coerce.number().min(0, 'A taxa deve ser positiva.'),
   tenantName: z.string().optional(),
@@ -63,6 +64,7 @@ export function PropertyForm({ userId, property, className }: PropertyFormProps)
     defaultValues: {
       name: '',
       address: '',
+      iptuContributorNumber: '',
       grossRent: 0,
       adminFee: 0,
       tenantName: '',
@@ -76,6 +78,7 @@ export function PropertyForm({ userId, property, className }: PropertyFormProps)
       form.reset({
         name: property.name,
         address: property.address,
+        iptuContributorNumber: property.iptuContributorNumber || '',
         grossRent: property.grossRent,
         adminFee: property.adminFee,
         tenantName: property.tenantName || '',
@@ -86,6 +89,7 @@ export function PropertyForm({ userId, property, className }: PropertyFormProps)
       form.reset({
         name: '',
         address: '',
+        iptuContributorNumber: '',
         grossRent: 0,
         adminFee: 0,
         tenantName: '',
@@ -205,10 +209,23 @@ export function PropertyForm({ userId, property, className }: PropertyFormProps)
               control={form.control}
               name="address"
               render={({ field }) => (
-                <FormItem className="md:col-span-2">
+                <FormItem>
                   <FormLabel>Endereço</FormLabel>
                   <FormControl>
                     <Input placeholder="Ex: Rua das Flores, 123, São Paulo, SP" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+             <FormField
+              control={form.control}
+              name="iptuContributorNumber"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Nº do Contribuinte (IPTU)</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Ex: 123.456.7890-1" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

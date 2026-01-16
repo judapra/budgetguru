@@ -102,7 +102,8 @@
         "adminFee": { "type": "number", "description": "The administration fee for the property in percentage." },
         "status": { "type": "string", "description": "The status of the property (e.g. Rented, Vacant).", "enum": ["Alugado", "Vazio"] },
         "tenantName": { "type": "string", "description": "The name of the tenant. If present, status is 'Alugado'." },
-        "tenantPhone": { "type": "string", "description": "The phone number of the tenant." }
+        "tenantPhone": { "type": "string", "description": "The phone number of the tenant." },
+        "iptuContributorNumber": { "type": "string", "description": "The IPTU contributor number for the property." }
       },
       "required": ["id", "userId", "name", "address", "grossRent", "netRent", "adminFee", "status"]
     },

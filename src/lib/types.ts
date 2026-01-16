@@ -61,6 +61,7 @@ export type Transaction = {
     status: 'Alugado' | 'Vazio';
     tenantName?: string;
     tenantPhone?: string;
+    iptuContributorNumber?: string;
   };
   
   export type PropertyExpense = {

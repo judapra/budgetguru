@@ -19,7 +19,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import type { Property } from '@/lib/types';
 import { Button } from '@/components/ui/button';
-import { Trash2, Home, MapPin, User, Phone, ToggleLeft, ToggleRight } from 'lucide-react';
+import { Trash2, Home, MapPin, User, Phone, ToggleLeft, ToggleRight, FileDigit } from 'lucide-react';
 import { useFirestore } from '@/firebase';
 import { deleteDoc, doc, setDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
@@ -100,14 +100,20 @@ export function PropertyList({ properties, userId }: PropertyListProps) {
             <Card key={property.id} className="flex flex-col">
             <CardHeader>
                 <div className="flex justify-between items-start">
-                    <div>
+                    <div className='flex-1'>
                         <CardTitle className="font-headline text-lg">{property.name}</CardTitle>
                         <CardDescription className="flex items-center gap-1 pt-1">
                             <MapPin className="h-3 w-3"/> {property.address}
                         </CardDescription>
+                         {property.iptuContributorNumber && (
+                            <CardDescription className="flex items-center gap-1 pt-1 text-xs">
+                                <FileDigit className="h-3 w-3"/> Nº Contribuinte: {property.iptuContributorNumber}
+                            </CardDescription>
+                        )}
                     </div>
                     <Badge 
                     className={cn(
+                        'ml-2',
                         property.status === 'Alugado' ? 'bg-green-100 text-green-800 border-green-200' : 'bg-orange-100 text-orange-800 border-orange-200'
                     )}
                     variant={'outline'}
