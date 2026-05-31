@@ -6,6 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { PropertyRentForm } from './property-rent-form';
+import { PropertyAirbnbSettlementForm } from './property-airbnb-settlement-form';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { type PropertyRent } from '@/lib/types';
@@ -16,7 +17,7 @@ import { Badge } from '../ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 
 
-export function PropertyRents({ propertyId, propertyName, userId, baseRentAmount, adminFee }: { propertyId: string, propertyName: string, userId: string, baseRentAmount: number, adminFee: number }) {
+export function PropertyRents({ propertyId, propertyName, userId, baseRentAmount, adminFee, propertyType }: { propertyId: string, propertyName: string, userId: string, baseRentAmount: number, adminFee: number, propertyType?: 'Tradicional' | 'Airbnb' }) {
     const firestore = useFirestore();
     const { user } = useUser();
     const { toast } = useToast();
@@ -67,8 +68,12 @@ export function PropertyRents({ propertyId, propertyName, userId, baseRentAmount
     return (
         <div>
             <div className="flex justify-between items-center mb-2">
-                <h4 className="font-semibold">Aluguéis Recebidos</h4>
-                <PropertyRentForm propertyId={propertyId} propertyName={propertyName} baseRentAmount={baseRentAmount} adminFee={adminFee} />
+                <h4 className="font-semibold">{propertyType === 'Airbnb' ? 'Fechamentos Mensais' : 'Aluguéis Recebidos'}</h4>
+                {propertyType === 'Airbnb' ? (
+                    <PropertyAirbnbSettlementForm propertyId={propertyId} propertyName={propertyName} adminFee={adminFee} />
+                ) : (
+                    <PropertyRentForm propertyId={propertyId} propertyName={propertyName} baseRentAmount={baseRentAmount} adminFee={adminFee} propertyType={propertyType} />
+                )}
             </div>
              {rents && rents.length > 0 ? (
                 <ul className="space-y-2">
@@ -87,7 +92,9 @@ export function PropertyRents({ propertyId, propertyName, userId, baseRentAmount
                                      <p className="text-xs text-muted-foreground capitalize">{new Date(rent.date).toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit' })}</p>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        {rent.isAdjustment && (
+                                        {propertyType === 'Airbnb' ? (
+                                            <Badge variant="outline" className="border-purple-500 text-purple-600">Repasse Líquido</Badge>
+                                        ) : rent.isAdjustment && (
                                             <TooltipProvider>
                                                 <Tooltip>
                                                     <TooltipTrigger>
@@ -99,7 +106,7 @@ export function PropertyRents({ propertyId, propertyName, userId, baseRentAmount
                                                 </Tooltip>
                                             </TooltipProvider>
                                         )}
-                                        <p className="text-sm font-bold text-green-600">{formatCurrency(receivedAmount)}</p>
+                                        <p className="text-sm font-bold text-green-600">{formatCurrency(propertyType === 'Airbnb' ? rent.amount : receivedAmount)}</p>
                                     </div>
                                 </div>
                                 
@@ -115,9 +122,19 @@ export function PropertyRents({ propertyId, propertyName, userId, baseRentAmount
                                     <div className="flex items-center gap-2">
                                         <Banknote className="h-3 w-3" />
                                         <span>
-                                            {rent.isAdjustment ? "Bruto" : "Base"}: {formatCurrency(rent.amount)}
-                                            {rent.additions ? <span className="text-blue-500"> + {formatCurrency(rent.additions)}</span> : ''}
-                                            {rent.discounts ? <span className="text-orange-500"> - {formatCurrency(rent.discounts)}</span> : ''}
+                                            {propertyType === 'Airbnb' ? (
+                                                <div className="flex flex-col gap-1 mt-1">
+                                                    <p>Faturamento Bruto: {formatCurrency(rent.airbnbGrossAmount)}</p>
+                                                    {rent.commissionAmount! > 0 && <p className="text-red-500">Comissão Administradora: - {formatCurrency(rent.commissionAmount)}</p>}
+                                                    {rent.extraExpensesAmount! > 0 && <p className="text-red-500">Despesas Extras (Manutenção/Seguro): - {formatCurrency(rent.extraExpensesAmount)}</p>}
+                                                </div>
+                                            ) : (
+                                                <>
+                                                    {rent.isAdjustment ? "Bruto" : "Base"}: {formatCurrency(rent.amount)}
+                                                    {rent.additions ? <span className="text-blue-500"> + {formatCurrency(rent.additions)}</span> : ''}
+                                                    {rent.discounts ? <span className="text-orange-500"> - {formatCurrency(rent.discounts)}</span> : ''}
+                                                </>
+                                            )}
                                         </span>
                                     </div>
                                     {rent.details && (
@@ -140,7 +157,7 @@ export function PropertyRents({ propertyId, propertyName, userId, baseRentAmount
                 })}
                 </ul>
             ) : (
-                <p className="text-sm text-muted-foreground text-center py-4">Nenhum aluguel cadastrado.</p>
+                <p className="text-sm text-muted-foreground text-center py-4">{propertyType === 'Airbnb' ? 'Nenhuma reserva cadastrada.' : 'Nenhum aluguel cadastrado.'}</p>
             )}
         </div>
     )

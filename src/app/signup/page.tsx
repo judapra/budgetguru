@@ -187,13 +187,22 @@ export default function SignupPage() {
             Google
           </Button>
         </CardContent>
-        <CardFooter className="justify-center text-sm">
+        <CardFooter className="flex flex-col justify-center gap-3 text-sm">
           <p>
             Já tem uma conta?{' '}
             <Link href="/login" className="font-semibold text-primary hover:underline">
               Login
             </Link>
           </p>
+          <div className="flex gap-2 text-xs text-muted-foreground mt-2 border-t pt-3 w-full justify-center">
+            <Link href="/privacy" className="hover:underline">
+              Política de Privacidade
+            </Link>
+            <span>&bull;</span>
+            <Link href="/terms" className="hover:underline">
+              Termos de Uso
+            </Link>
+          </div>
         </CardFooter>
       </Card>
     </div>

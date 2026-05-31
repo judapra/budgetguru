@@ -45,6 +45,9 @@ const formSchema = z.object({
   status: z.enum(['Alugado', 'Vazio'], {
     required_error: 'Você precisa selecionar um status.',
   }),
+  type: z.enum(['Tradicional', 'Airbnb']).default('Tradicional'),
+  adminCompany: z.string().optional(),
+  adminContactUrl: z.string().url('URL inválida').optional().or(z.literal('')),
 });
 
 type PropertyFormProps = {
@@ -72,6 +75,9 @@ export function PropertyForm({ userId, property, className }: PropertyFormProps)
       tenantName: '',
       tenantPhone: '',
       status: 'Vazio',
+      type: 'Tradicional',
+      adminCompany: '',
+      adminContactUrl: '',
     },
   });
 
@@ -87,6 +93,9 @@ export function PropertyForm({ userId, property, className }: PropertyFormProps)
         tenantName: property.tenantName || '',
         tenantPhone: property.tenantPhone || '',
         status: property.status || 'Vazio',
+        type: property.type || 'Tradicional',
+        adminCompany: property.adminCompany || '',
+        adminContactUrl: property.adminContactUrl || '',
       });
     } else {
       form.reset({
@@ -99,15 +108,19 @@ export function PropertyForm({ userId, property, className }: PropertyFormProps)
         tenantName: '',
         tenantPhone: '',
         status: 'Vazio',
+        type: 'Tradicional',
+        adminCompany: '',
+        adminContactUrl: '',
       });
     }
   }, [property, isEditing, form, open]);
 
   const adminFeeValue = form.watch('adminFee');
   const grossRentValue = form.watch('grossRent');
+  const propertyType = form.watch('type');
 
-  const adminFeeInBRL = (grossRentValue * adminFeeValue) / 100;
-  const netRent = grossRentValue - adminFeeInBRL;
+  const adminFeeInBRL = propertyType === 'Airbnb' ? 0 : (grossRentValue * adminFeeValue) / 100;
+  const netRent = propertyType === 'Airbnb' ? 0 : grossRentValue - adminFeeInBRL;
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (!firestore) return;
@@ -164,7 +177,7 @@ export function PropertyForm({ userId, property, className }: PropertyFormProps)
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-2xl">
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="font-headline">{isEditing ? 'Editar Imóvel' : 'Cadastrar Novo Imóvel'}</DialogTitle>
         </DialogHeader>
@@ -178,6 +191,32 @@ export function PropertyForm({ userId, property, className }: PropertyFormProps)
                   <FormLabel>Nome do Imóvel</FormLabel>
                   <FormControl>
                     <Input placeholder="Ex: Apartamento na Praia" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="type"
+              render={({ field }) => (
+                <FormItem className="space-y-3">
+                  <FormLabel>Tipo de Imóvel</FormLabel>
+                  <FormControl>
+                    <RadioGroup onValueChange={field.onChange} value={field.value} className="flex space-x-4">
+                      <FormItem className="flex items-center space-x-2 space-y-0">
+                        <FormControl>
+                          <RadioGroupItem value="Tradicional" />
+                        </FormControl>
+                        <FormLabel className="font-normal">Tradicional</FormLabel>
+                      </FormItem>
+                      <FormItem className="flex items-center space-x-2 space-y-0">
+                        <FormControl>
+                          <RadioGroupItem value="Airbnb" />
+                        </FormControl>
+                        <FormLabel className="font-normal">Airbnb</FormLabel>
+                      </FormItem>
+                    </RadioGroup>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -248,19 +287,21 @@ export function PropertyForm({ userId, property, className }: PropertyFormProps)
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="grossRent"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Aluguel Bruto (R$)</FormLabel>
-                  <FormControl>
-                    <Input type="number" placeholder="2500" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {propertyType === 'Tradicional' && (
+              <FormField
+                control={form.control}
+                name="grossRent"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Aluguel Bruto Mensal (R$)</FormLabel>
+                    <FormControl>
+                      <Input type="number" placeholder="2500" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
             <FormField
               control={form.control}
               name="adminFee"
@@ -274,14 +315,49 @@ export function PropertyForm({ userId, property, className }: PropertyFormProps)
                 </FormItem>
               )}
             />
-            <div className="space-y-2">
-                <Label>Taxa de Administração (R$)</Label>
-                <Input value={adminFeeInBRL.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} disabled />
-            </div>
-            <div className="space-y-2">
-                <Label>Aluguel Líquido (R$)</Label>
-                <Input value={netRent.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} disabled />
-            </div>
+            {propertyType === 'Tradicional' && (
+              <>
+                <div className="space-y-2">
+                    <Label>Taxa de Administração (R$)</Label>
+                    <Input value={adminFeeInBRL.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} disabled />
+                </div>
+                <div className="space-y-2">
+                    <Label>Aluguel Líquido Estimado (R$)</Label>
+                    <Input value={netRent.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} disabled />
+                </div>
+              </>
+            )}
+
+            {propertyType === 'Airbnb' && (
+              <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+                 <FormField
+                  control={form.control}
+                  name="adminCompany"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Empresa Administradora</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Ex: Anfitrião Prime, Seazone..." {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                 />
+                 <FormField
+                  control={form.control}
+                  name="adminContactUrl"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Link de Contato (WhatsApp/Site)</FormLabel>
+                      <FormControl>
+                        <Input type="url" placeholder="https://wa.me/..." {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                 />
+              </div>
+            )}
 
             <div className="md:col-span-2 border-t pt-4">
                  <h3 className="text-base font-medium mb-2">Informações do Inquilino (Opcional)</h3>

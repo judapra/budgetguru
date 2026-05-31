@@ -274,7 +274,7 @@ export function PropertyExpenseForm({ userId, propertyId, propertyName, expense 
                 <FormItem>
                   <FormLabel>Valor</FormLabel>
                   <FormControl>
-                    <Input type="number" placeholder="R$ 0,00" {...field} step="0.01" />
+                    <Input type="number" placeholder="R$ 0,00" {...field} step="0.01" value={field.value ?? ''} onChange={(e) => field.onChange(e.target.value === '' ? '' : Number(e.target.value))} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

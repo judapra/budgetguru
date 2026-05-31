@@ -12,6 +12,8 @@ import { UpdateEmailForm } from "@/components/settings/update-email-form";
 import { UpdatePasswordForm } from "@/components/settings/update-password-form";
 import { DeleteAccountSection } from "@/components/settings/delete-account-section";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 export default function SettingsPage() {
     const { user, isUserLoading } = useUser();
@@ -75,6 +77,29 @@ export default function SettingsPage() {
                             </CardContent>
                         </Card>
                     )}
+
+                    <Separator />
+                    
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="font-headline">Informações Legais</CardTitle>
+                            <CardDescription>
+                                Visualize os termos legais e políticas de privacidade do Budget Guru.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="flex flex-col sm:flex-row gap-4">
+                            <Button variant="outline" asChild className="flex-1">
+                                <Link href="/privacy">
+                                    Política de Privacidade
+                                </Link>
+                            </Button>
+                            <Button variant="outline" asChild className="flex-1">
+                                <Link href="/terms">
+                                    Termos de Uso
+                                </Link>
+                            </Button>
+                        </CardContent>
+                    </Card>
 
                     <Separator />
                     <DeleteAccountSection />

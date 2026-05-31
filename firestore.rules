@@ -133,6 +133,67 @@ service cloud.firestore {
       allow delete: if isSignedIn() && isOwner(userId) && resource.data.userId == userId;
     }
 
+    match /users/{userId}/company/{companyId} {
+      function isSignedIn() { return request.auth != null; }
+      function isOwner(userId) { return request.auth.uid == userId; }
+      allow get: if isSignedIn() && isOwner(userId);
+      allow list: if isSignedIn() && isOwner(userId);
+      allow create: if isSignedIn() && isOwner(userId) && request.resource.data.userId == userId;
+      allow update: if isSignedIn() && isOwner(userId) && resource.data.userId == userId;
+      allow delete: if isSignedIn() && isOwner(userId) && resource.data.userId == userId;
+    }
+
+    match /users/{userId}/company_incomes/{incomeId} {
+      function isSignedIn() { return request.auth != null; }
+      function isOwner(userId) { return request.auth.uid == userId; }
+      allow get: if isSignedIn() && isOwner(userId);
+      allow list: if isSignedIn() && isOwner(userId);
+      allow create: if isSignedIn() && isOwner(userId) && request.resource.data.userId == userId;
+      allow update: if isSignedIn() && isOwner(userId) && resource.data.userId == userId;
+      allow delete: if isSignedIn() && isOwner(userId) && resource.data.userId == userId;
+    }
+
+    match /users/{userId}/company_expenses/{expenseId} {
+      function isSignedIn() { return request.auth != null; }
+      function isOwner(userId) { return request.auth.uid == userId; }
+      allow get: if isSignedIn() && isOwner(userId);
+      allow list: if isSignedIn() && isOwner(userId);
+      allow create: if isSignedIn() && isOwner(userId) && request.resource.data.userId == userId;
+      allow update: if isSignedIn() && isOwner(userId) && resource.data.userId == userId;
+      allow delete: if isSignedIn() && isOwner(userId) && resource.data.userId == userId;
+    }
+
+    match /users/{userId}/company_categories/{categoryId} {
+      function isSignedIn() { return request.auth != null; }
+      function isOwner(userId) { return request.auth.uid == userId; }
+      allow get: if isSignedIn() && isOwner(userId);
+      allow list: if isSignedIn() && isOwner(userId);
+      allow create: if isSignedIn() && isOwner(userId) && request.resource.data.userId == userId;
+      allow update: if isSignedIn() && isOwner(userId) && resource.data.userId == userId;
+      allow delete: if isSignedIn() && isOwner(userId) && resource.data.userId == userId;
+    }
+
+    match /users/{userId}/budgets/{budgetId} {
+      function isSignedIn() { return request.auth != null; }
+      function isOwner(userId) { return request.auth.uid == userId; }
+      allow get: if isSignedIn() && isOwner(userId);
+      allow list: if isSignedIn() && isOwner(userId);
+      allow create: if isSignedIn() && isOwner(userId) && request.resource.data.userId == userId;
+      allow update: if isSignedIn() && isOwner(userId) && resource.data.userId == userId;
+      allow delete: if isSignedIn() && isOwner(userId) && resource.data.userId == userId;
+    }
+
+    match /users/{userId}/company_budgets/{budgetId} {
+      function isSignedIn() { return request.auth != null; }
+      function isOwner(userId) { return request.auth.uid == userId; }
+      allow get: if isSignedIn() && isOwner(userId);
+      allow list: if isSignedIn() && isOwner(userId);
+      allow create: if isSignedIn() && isOwner(userId) && request.resource.data.userId == userId;
+      allow update: if isSignedIn() && isOwner(userId) && resource.data.userId == userId;
+      allow delete: if isSignedIn() && isOwner(userId) && resource.data.userId == userId;
+    }
+
+
     /**
      * @description Rules for the /users/{userId}/properties/{propertyId} collection.
      * @path /users/{userId}/properties/{propertyId}
@@ -170,6 +231,54 @@ service cloud.firestore {
      * @principle Enforces document ownership; only the owner can read/write.
      */
     match /users/{userId}/properties/{propertyId}/expenses/{propertyExpenseId} {
+      function isSignedIn() {
+        return request.auth != null;
+      }
+
+      function isOwner(userId) {
+        return request.auth.uid == userId;
+      }
+
+      allow get: if isSignedIn() && isOwner(userId);
+      allow list: if isSignedIn() && isOwner(userId);
+      allow create: if isSignedIn() && isOwner(userId) && request.resource.data.userId == userId && request.resource.data.propertyId == propertyId;
+      allow update: if isSignedIn() && isOwner(userId) && request.resource.data.propertyId == propertyId;
+      allow delete: if isSignedIn() && isOwner(userId) && resource.data.propertyId == propertyId;
+    }
+
+    match /users/{userId}/properties/{propertyId}/recurring_expenses/{recurringExpenseId} {
+      function isSignedIn() {
+        return request.auth != null;
+      }
+
+      function isOwner(userId) {
+        return request.auth.uid == userId;
+      }
+
+      allow get: if isSignedIn() && isOwner(userId);
+      allow list: if isSignedIn() && isOwner(userId);
+      allow create: if isSignedIn() && isOwner(userId) && request.resource.data.userId == userId && request.resource.data.propertyId == propertyId;
+      allow update: if isSignedIn() && isOwner(userId) && request.resource.data.propertyId == propertyId;
+      allow delete: if isSignedIn() && isOwner(userId) && resource.data.propertyId == propertyId;
+    }
+
+    match /users/{userId}/properties/{propertyId}/rents/{rentId} {
+      function isSignedIn() {
+        return request.auth != null;
+      }
+
+      function isOwner(userId) {
+        return request.auth.uid == userId;
+      }
+
+      allow get: if isSignedIn() && isOwner(userId);
+      allow list: if isSignedIn() && isOwner(userId);
+      allow create: if isSignedIn() && isOwner(userId) && request.resource.data.userId == userId && request.resource.data.propertyId == propertyId;
+      allow update: if isSignedIn() && isOwner(userId) && request.resource.data.propertyId == propertyId;
+      allow delete: if isSignedIn() && isOwner(userId) && resource.data.propertyId == propertyId;
+    }
+
+    match /users/{userId}/properties/{propertyId}/reservations/{reservationId} {
       function isSignedIn() {
         return request.auth != null;
       }

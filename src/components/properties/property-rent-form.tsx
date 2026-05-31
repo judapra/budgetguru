@@ -23,6 +23,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Loader2, Plus, Info } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { Category, PropertyRent } from '@/lib/types';
@@ -46,6 +47,7 @@ const formSchema = z.object({
     required_error: 'Você precisa selecionar um destino para o depósito.',
   }),
   isAdjustment: z.boolean().default(false),
+  airbnbGrossAmount: z.coerce.number().optional(),
 }).refine(data => {
     // Se for um reajuste, o grossAmount é obrigatório e deve ser maior que 0
     if (data.isAdjustment) {
@@ -63,6 +65,7 @@ type PropertyRentFormProps = {
   propertyName: string;
   baseRentAmount?: number;
   adminFee: number;
+  propertyType?: 'Tradicional' | 'Airbnb';
 };
 
 async function getOrCreateCategory(
@@ -95,7 +98,7 @@ async function getOrCreateCategory(
 }
 
 
-export function PropertyRentForm({ propertyId, propertyName, baseRentAmount, adminFee }: PropertyRentFormProps) {
+export function PropertyRentForm({ propertyId, propertyName, baseRentAmount, adminFee, propertyType }: PropertyRentFormProps) {
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const firestore = useFirestore();
@@ -129,6 +132,7 @@ export function PropertyRentForm({ propertyId, propertyName, baseRentAmount, adm
         additions: 0,
         destination: 'Personal',
         isAdjustment: false,
+        airbnbGrossAmount: undefined,
       });
   }, [baseRentAmount, form, open]);
 
@@ -143,17 +147,19 @@ export function PropertyRentForm({ propertyId, propertyName, baseRentAmount, adm
 
     try {
         const categoryCollectionName = values.destination === 'Personal' ? 'categories' : 'company_categories';
-        const categoryDoc = await getOrCreateCategory(firestore, user.uid, 'Receita de Aluguel', 'Income', categoryCollectionName);
+        const categoryDoc = await getOrCreateCategory(firestore, user.uid, propertyType === 'Airbnb' ? 'Reserva Airbnb' : 'Receita de Aluguel', 'Income', categoryCollectionName);
         const categoryId = categoryDoc.id;
 
         const newRentDocRef = doc(collection(firestore, `users/${user.uid}/properties/${propertyId}/rents`));
         newRentId = newRentDocRef.id;
 
+        const finalNetAmount = propertyType === 'Airbnb' ? (values.airbnbGrossAmount || 0) * (1 - adminFee / 100) : values.netAmount!;
+        const finalAmountForRent = propertyType === 'Airbnb' ? finalNetAmount : (values.isAdjustment ? values.grossAmount! : values.netAmount!);
+
         const rentData: Omit<PropertyRent, 'id'> = {
             propertyId,
             date: values.date.toISOString(),
-            // Se for reajuste, salvamos o valor bruto, senão, o líquido
-            amount: values.isAdjustment ? values.grossAmount! : values.netAmount!,
+            amount: finalAmountForRent,
             account: values.account || '',
             discounts: values.discounts,
             additions: values.additions,
@@ -161,6 +167,7 @@ export function PropertyRentForm({ propertyId, propertyName, baseRentAmount, adm
             destination: values.destination,
             userId: user.uid,
             isAdjustment: values.isAdjustment,
+            airbnbGrossAmount: propertyType === 'Airbnb' ? values.airbnbGrossAmount : undefined,
         };
         batch.set(newRentDocRef, rentData);
 
@@ -169,10 +176,10 @@ export function PropertyRentForm({ propertyId, propertyName, baseRentAmount, adm
         const newIncomeRef = doc(incomeCollectionRef);
        
         const incomeData = {
-            amount: values.netAmount!,
+            amount: finalNetAmount,
             categoryId: categoryId,
             date: values.date.toISOString(),
-            details: `Aluguel: ${propertyName}`,
+            details: propertyType === 'Airbnb' ? `Reserva: ${propertyName}` : `Aluguel: ${propertyName}`,
             receiptMethod: `Depósito (${values.account || 'Não informada'})`,
             userId: user.uid,
             propertyRentId: newRentId,
@@ -219,12 +226,13 @@ export function PropertyRentForm({ propertyId, propertyName, baseRentAmount, adm
           Adicionar
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="font-headline">Adicionar Aluguel</DialogTitle>
+          <DialogTitle className="font-headline">{propertyType === 'Airbnb' ? 'Adicionar Reserva' : 'Adicionar Aluguel'}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            {propertyType !== 'Airbnb' && (
              <FormField
               control={form.control}
               name="isAdjustment"
@@ -243,6 +251,7 @@ export function PropertyRentForm({ propertyId, propertyName, baseRentAmount, adm
                 </FormItem>
               )}
             />
+            )}
              {isAdjustment && (
                 <Alert>
                     <Info className="h-4 w-4" />
@@ -251,6 +260,11 @@ export function PropertyRentForm({ propertyId, propertyName, baseRentAmount, adm
                         Informe o novo valor BRUTO do aluguel. O valor base do imóvel será atualizado.
                     </AlertDescription>
                 </Alert>
+            )}
+            {propertyType === 'Airbnb' && (
+                <div className="bg-muted/50 p-3 rounded-md text-sm text-muted-foreground mb-4">
+                    Comissão configurada para este imóvel: <strong>{adminFee}%</strong>
+                </div>
             )}
             <FormField
                 control={form.control}
@@ -283,34 +297,58 @@ export function PropertyRentForm({ propertyId, propertyName, baseRentAmount, adm
                 )}
             />
             <div className="grid grid-cols-2 gap-4">
-                {isAdjustment && (
-                    <FormField
-                        control={form.control}
-                        name="grossAmount"
-                        render={({ field }) => (
-                            <FormItem>
-                            <FormLabel>Valor Bruto (Contrato)</FormLabel>
-                            <FormControl>
-                                <Input type="number" placeholder="R$ 5000,00" {...field} step="0.01" />
-                            </FormControl>
-                            <FormMessage />
-                            </FormItem>
+                {propertyType === 'Airbnb' ? (
+                    <>
+                        <FormField
+                            control={form.control}
+                            name="airbnbGrossAmount"
+                            render={({ field }) => (
+                                <FormItem className="col-span-2">
+                                <FormLabel>Valor Bruto da Reserva</FormLabel>
+                                <FormControl>
+                                    <Input type="number" placeholder="R$ 1500,00" {...field} step="0.01" />
+                                </FormControl>
+                                <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <div className="col-span-2 space-y-2">
+                            <Label>Valor Líquido Estimado (R$)</Label>
+                            <Input value={((form.watch('airbnbGrossAmount') || 0) * (1 - adminFee / 100)).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} disabled />
+                        </div>
+                    </>
+                ) : (
+                    <>
+                        {isAdjustment && (
+                            <FormField
+                                control={form.control}
+                                name="grossAmount"
+                                render={({ field }) => (
+                                    <FormItem>
+                                    <FormLabel>Valor Bruto (Contrato)</FormLabel>
+                                    <FormControl>
+                                        <Input type="number" placeholder="R$ 5000,00" {...field} step="0.01" />
+                                    </FormControl>
+                                    <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
                         )}
-                    />
+                        <FormField
+                            control={form.control}
+                            name="netAmount"
+                            render={({ field }) => (
+                                <FormItem className={!isAdjustment ? 'col-span-2' : ''}>
+                                <FormLabel>Valor Líquido Recebido</FormLabel>
+                                <FormControl>
+                                    <Input type="number" placeholder="R$ 4680,65" {...field} step="0.01" />
+                                </FormControl>
+                                <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    </>
                 )}
-                <FormField
-                    control={form.control}
-                    name="netAmount"
-                    render={({ field }) => (
-                        <FormItem className={!isAdjustment ? 'col-span-2' : ''}>
-                        <FormLabel>Valor Líquido Recebido</FormLabel>
-                        <FormControl>
-                            <Input type="number" placeholder="R$ 4680,65" {...field} step="0.01" />
-                        </FormControl>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                />
                 <FormField
                 control={form.control}
                 name="date"
@@ -381,7 +419,7 @@ export function PropertyRentForm({ propertyId, propertyName, baseRentAmount, adm
             />
             <Button type="submit" disabled={isSubmitting} className="w-full font-headline">
               {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Salvar Aluguel
+              {propertyType === 'Airbnb' ? 'Salvar Reserva' : 'Salvar Aluguel'}
             </Button>
           </form>
         </Form>

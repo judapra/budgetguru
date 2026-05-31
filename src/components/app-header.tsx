@@ -15,7 +15,7 @@ export function AppHeader() {
       <div className="container mx-auto px-4 py-4 flex justify-between items-center">
         <div className="flex items-center gap-6">
           <Link href="/">
-            <Logo />
+            <Logo size={50} />
           </Link>
           {user && <MainNav />}
         </div>

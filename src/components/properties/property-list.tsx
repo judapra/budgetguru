@@ -19,7 +19,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import type { Property } from '@/lib/types';
 import { Button } from '@/components/ui/button';
-import { Trash2, Home, MapPin, User, Phone, ToggleLeft, ToggleRight, FileDigit, Link as LinkIcon } from 'lucide-react';
+import { Trash2, Home, MapPin, User, Phone, ToggleLeft, ToggleRight, FileDigit, Link as LinkIcon, Briefcase } from 'lucide-react';
 import { useFirestore } from '@/firebase';
 import { deleteDoc, doc, setDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
@@ -28,6 +28,7 @@ import { FirestorePermissionError } from '@/firebase/errors';
 import { PropertyForm } from './property-form';
 import { PropertyExpenses } from './property-expenses';
 import { PropertyRents } from './property-rents';
+import { PropertyReservations } from './property-reservations';
 import { cn } from '@/lib/utils';
 
 
@@ -117,55 +118,102 @@ export function PropertyList({ properties, userId }: PropertyListProps) {
                             </CardDescription>
                         )}
                     </div>
-                    <Badge 
-                    className={cn(
-                        'ml-2',
-                        property.status === 'Alugado' ? 'bg-green-100 text-green-800 border-green-200' : 'bg-orange-100 text-orange-800 border-orange-200'
-                    )}
-                    variant={'outline'}
-                    >
-                        {property.status}
-                    </Badge>
+                    <div className="flex gap-2">
+                        {property.type === 'Airbnb' && (
+                            <Badge className="bg-purple-100 text-purple-800 border-purple-200" variant="outline">
+                                Airbnb
+                            </Badge>
+                        )}
+                        <Badge 
+                        className={cn(
+                            property.status === 'Alugado' ? 'bg-green-100 text-green-800 border-green-200' : 'bg-orange-100 text-orange-800 border-orange-200'
+                        )}
+                        variant={'outline'}
+                        >
+                            {property.status}
+                        </Badge>
+                    </div>
                 </div>
             </CardHeader>
             <CardContent className="flex-grow space-y-4">
-                {(property.tenantName || property.tenantPhone) && (
+                {(property.tenantName || property.tenantPhone || property.adminCompany) && (
                 <div className="text-xs text-muted-foreground space-y-1 border-b pb-4">
-                    {property.tenantName && (
+                    {property.tenantName && property.type !== 'Airbnb' && (
                     <div className="flex items-center gap-2">
                         <User className="h-3 w-3" />
                         <span>{property.tenantName}</span>
                     </div>
                     )}
-                    {property.tenantPhone && (
+                    {property.tenantPhone && property.type !== 'Airbnb' && (
                     <div className="flex items-center gap-2">
                         <Phone className="h-3 w-3" />
                         <span>{property.tenantPhone}</span>
                     </div>
                     )}
+                    {property.adminCompany && property.type === 'Airbnb' && (
+                    <div className="flex items-center gap-2">
+                        <Briefcase className="h-3 w-3" />
+                        <span>Administradora: {property.adminCompany}</span>
+                    </div>
+                    )}
+                    {property.adminContactUrl && property.type === 'Airbnb' && (
+                    <div className="flex items-center gap-2">
+                        <Phone className="h-3 w-3" />
+                        <a href={property.adminContactUrl} target="_blank" rel="noopener noreferrer" className="hover:underline text-primary">
+                            Contato via WhatsApp
+                        </a>
+                    </div>
+                    )}
                 </div>
                 )}
                 <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div className="space-y-1">
-                        <p className="text-muted-foreground">Aluguel Bruto</p>
-                        <p className="font-medium">{property.grossRent.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
-                    </div>
-                    <div className="space-y-1">
-                        <p className="text-muted-foreground">Taxa Admin ({property.adminFee}%)</p>
-                        <p className="font-medium text-red-500">- {(property.grossRent * property.adminFee / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
-                    </div>
-                    <div className="space-y-1 col-span-2">
-                        <p className="text-muted-foreground">Aluguel Líquido Base</p>
-                        <p className="font-semibold text-lg text-green-600">{property.netRent.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
-                    </div>
+                    {property.type === 'Airbnb' ? (
+                        <>
+                            <div className="space-y-1">
+                                <p className="text-muted-foreground">Comissão Airbnb</p>
+                                <p className="font-medium text-orange-500">{property.adminFee}%</p>
+                            </div>
+                            <div className="space-y-1 col-span-2">
+                                <p className="text-muted-foreground">Aluguel Líquido Base</p>
+                                <p className="font-semibold text-lg text-green-600">Variável (Reservas)</p>
+                            </div>
+                        </>
+                    ) : (
+                        <>
+                            <div className="space-y-1">
+                                <p className="text-muted-foreground">Aluguel Bruto</p>
+                                <p className="font-medium">{property.grossRent.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
+                            </div>
+                            <div className="space-y-1">
+                                <p className="text-muted-foreground">Taxa Admin ({property.adminFee}%)</p>
+                                <p className="font-medium text-red-500">- {(property.grossRent * property.adminFee / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
+                            </div>
+                            <div className="space-y-1 col-span-2">
+                                <p className="text-muted-foreground">Aluguel Líquido Base</p>
+                                <p className="font-semibold text-lg text-green-600">{property.netRent.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
+                            </div>
+                        </>
+                    )}
                 </div>
                 <Accordion type="single" collapsible className="w-full">
                     <AccordionItem value="rents">
-                        <AccordionTrigger>Ver Aluguéis</AccordionTrigger>
+                        <AccordionTrigger>{property.type === 'Airbnb' ? 'Ver Reservas' : 'Ver Aluguéis'}</AccordionTrigger>
                         <AccordionContent>
-                            <PropertyRents propertyId={property.id} propertyName={property.name} userId={userId} baseRentAmount={property.netRent} adminFee={property.adminFee}/>
+                            {property.type === 'Airbnb' ? (
+                                <PropertyReservations propertyId={property.id} propertyName={property.name} userId={userId} adminFee={property.adminFee} />
+                            ) : (
+                                <PropertyRents propertyId={property.id} propertyName={property.name} userId={userId} baseRentAmount={property.netRent} adminFee={property.adminFee} propertyType={property.type}/>
+                            )}
                         </AccordionContent>
                     </AccordionItem>
+                    {property.type === 'Airbnb' && (
+                        <AccordionItem value="settlements">
+                            <AccordionTrigger>Repasses Mensais</AccordionTrigger>
+                            <AccordionContent>
+                                <PropertyRents propertyId={property.id} propertyName={property.name} userId={userId} baseRentAmount={property.netRent} adminFee={property.adminFee} propertyType={property.type}/>
+                            </AccordionContent>
+                        </AccordionItem>
+                    )}
                     <AccordionItem value="expenses">
                         <AccordionTrigger>Ver Despesas</AccordionTrigger>
                         <AccordionContent>

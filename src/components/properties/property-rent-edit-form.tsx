@@ -236,7 +236,7 @@ export function PropertyRentEditForm({ userId, propertyId, propertyName, rent, b
           <Pencil className="h-3 w-3" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="font-headline">Editar Aluguel</DialogTitle>
         </DialogHeader>

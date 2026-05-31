@@ -40,11 +40,9 @@ export function MainNav({
     <NavigationMenu className={cn("hidden md:flex", className)} {...props}>
       <NavigationMenuList>
         <NavigationMenuItem>
-          <Link href="/" legacyBehavior passHref>
-            <NavigationMenuLink active={pathname === '/'} className={navigationMenuTriggerStyle()}>
-              Dashboard
-            </NavigationMenuLink>
-          </Link>
+          <NavigationMenuLink asChild active={pathname === '/'} className={navigationMenuTriggerStyle()}>
+            <Link href="/">Dashboard</Link>
+          </NavigationMenuLink>
         </NavigationMenuItem>
 
         <NavigationMenuItem>
@@ -84,11 +82,11 @@ export function MainNav({
         </NavigationMenuItem>
 
         <NavigationMenuItem>
-          <Link href="/properties" legacyBehavior passHref>
-            <NavigationMenuLink active={pathname.startsWith('/properties')} className={navigationMenuTriggerStyle()}>
+          <NavigationMenuLink asChild active={pathname.startsWith('/properties')} className={navigationMenuTriggerStyle()}>
+            <Link href="/properties">
                 <Landmark className="mr-2 h-4 w-4" /> Imóveis
-            </NavigationMenuLink>
-          </Link>
+            </Link>
+          </NavigationMenuLink>
         </NavigationMenuItem>
 
       </NavigationMenuList>
